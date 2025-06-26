@@ -1,169 +1,177 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Upload, Database, BarChart3 } from 'lucide-react';
+import { Package, Upload, FileText, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FileUpload from '../components/FileUpload';
 import NFEList from '../components/NFEList';
-import NFEDetails from '../components/NFEDetails';
+import { getNFEData, clearAllNFEData } from '../utils/storage';
 import { NFEData } from '../types/nfe';
-import { getNFEData } from '../utils/storage';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [nfeData, setNfeData] = useState<NFEData[]>([]);
-  const [selectedNFE, setSelectedNFE] = useState<NFEData | null>(null);
-  const [activeTab, setActiveTab] = useState<'upload' | 'list'>('upload');
+  const { toast } = useToast();
 
   useEffect(() => {
-    loadNFEData();
+    const storedData = getNFEData();
+    setNfeData(storedData);
   }, []);
 
-  const loadNFEData = () => {
-    const data = getNFEData();
-    setNfeData(data);
-    if (data.length > 0 && activeTab === 'upload') {
-      setActiveTab('list');
+  const handleClearAll = () => {
+    if (window.confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
+      clearAllNFEData();
+      setNfeData([]);
+      toast({
+        title: "Dados limpos",
+        description: "Todos os dados NFE foram removidos com sucesso.",
+      });
     }
   };
 
-  const handleUploadSuccess = (newNFEs: NFEData[]) => {
-    setNfeData(prevData => [...prevData, ...newNFEs]);
-    setActiveTab('list');
-  };
-
-  const handleViewDetails = (nfe: NFEData) => {
-    setSelectedNFE(nfe);
-  };
-
-  const handleCloseDetails = () => {
-    setSelectedNFE(null);
-  };
-
-  const totalValue = nfeData.reduce((sum, nfe) => sum + nfe.totalValue, 0);
-  const totalProducts = nfeData.reduce((sum, nfe) => sum + nfe.products.length, 0);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
+  const handleUploadSuccess = (newNfeData: NFEData[]) => {
+    setNfeData(prev => [...prev, ...newNfeData]);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">NFE Storage System</h1>
-                <p className="text-sm text-gray-500">Import and manage your NFE XML files</p>
-              </div>
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div className="flex items-center space-x-3 mb-4 sm:mb-0">
+            <div className="p-2 bg-blue-600 rounded-lg">
+              <FileText className="h-6 w-6 text-white" />
             </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Sistema NFE</h1>
+              <p className="text-gray-600">Importação e gestão de Notas Fiscais Eletrônicas</p>
+            </div>
+          </div>
+          
+          <div className="flex space-x-2">
+            <Button
+              onClick={() => navigate('/inventory')}
+              className="flex items-center space-x-2"
+            >
+              <Package className="h-4 w-4" />
+              <span>Inventário</span>
+            </Button>
             
             {nfeData.length > 0 && (
-              <div className="flex items-center space-x-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{nfeData.length}</div>
-                  <div className="text-xs text-gray-500">NFEs</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{totalProducts}</div>
-                  <div className="text-xs text-gray-500">Products</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-purple-600">{formatCurrency(totalValue)}</div>
-                  <div className="text-xs text-gray-500">Total Value</div>
-                </div>
-              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleClearAll}
+                className="flex items-center space-x-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Limpar Tudo</span>
+              </Button>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
-            <button
-              onClick={() => setActiveTab('upload')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'upload'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Upload className="h-4 w-4" />
-                <span>Upload NFE</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('list')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'list'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Database className="h-4 w-4" />
-                <span>NFE List ({nfeData.length})</span>
-              </div>
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'upload' && (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Import NFE XML Files
-              </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Upload your Brazilian NFE (Nota Fiscal Eletrônica) XML files to extract and store 
-                product information, quantities, prices, and seller details automatically.
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de NFEs</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{nfeData.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Notas fiscais importadas
               </p>
-            </div>
-            <FileUpload onUploadSuccess={handleUploadSuccess} />
-          </div>
-        )}
+            </CardContent>
+          </Card>
 
-        {activeTab === 'list' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Imported NFE Files
-              </h2>
-              <button
-                onClick={() => setActiveTab('upload')}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Import New NFE
-              </button>
-            </div>
-            
-            <NFEList 
-              nfeData={nfeData}
-              onRefresh={loadNFEData}
-              onViewDetails={handleViewDetails}
-            />
-          </div>
-        )}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Produtos</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {nfeData.reduce((total, nfe) => total + nfe.products.length, 0)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Itens no inventário
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+              <span className="text-lg">R$</span>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(nfeData.reduce((total, nfe) => total + nfe.totalValue, 0))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Valor das notas importadas
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <Tabs defaultValue="upload" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="upload" className="flex items-center space-x-2">
+              <Upload className="h-4 w-4" />
+              <span>Upload XML</span>
+            </TabsTrigger>
+            <TabsTrigger value="nfes" className="flex items-center space-x-2">
+              <FileText className="h-4 w-4" />
+              <span>NFEs Importadas ({nfeData.length})</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upload">
+            <Card>
+              <CardHeader>
+                <CardTitle>Import NFE XML Files</CardTitle>
+                <CardDescription>
+                  Faça upload de múltiplos arquivos XML de Notas Fiscais Eletrônicas para importação automática
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FileUpload onUploadSuccess={handleUploadSuccess} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="nfes">
+            {nfeData.length > 0 ? (
+              <NFEList 
+                nfeData={nfeData} 
+                onDelete={(id) => setNfeData(prev => prev.filter(nfe => nfe.id !== id))} 
+              />
+            ) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma NFE importada</h3>
+                  <p className="text-gray-600 mb-4">
+                    Faça upload de arquivos XML para começar a gerenciar suas notas fiscais
+                  </p>
+                  <Button onClick={() => document.querySelector('[data-state="active"]')?.click()}>
+                    Fazer Upload
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* NFE Details Modal */}
-      {selectedNFE && (
-        <NFEDetails
-          nfe={selectedNFE}
-          onClose={handleCloseDetails}
-        />
-      )}
     </div>
   );
 };
