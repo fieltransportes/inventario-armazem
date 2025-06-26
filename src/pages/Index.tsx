@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FileText, Upload, Database, BarChart3 } from 'lucide-react';
 import FileUpload from '../components/FileUpload';
@@ -24,8 +23,8 @@ const Index = () => {
     }
   };
 
-  const handleUploadSuccess = (newNFE: NFEData) => {
-    setNfeData(prevData => [...prevData, newNFE]);
+  const handleUploadSuccess = (newNFEs: NFEData[]) => {
+    setNfeData(prevData => [...prevData, ...newNFEs]);
     setActiveTab('list');
   };
 

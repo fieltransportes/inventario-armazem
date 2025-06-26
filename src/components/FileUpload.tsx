@@ -1,47 +1,115 @@
 
 import React, { useCallback, useState } from 'react';
-import { Upload, FileText, AlertCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { parseNFEXML } from '../utils/nfeParser';
 import { saveNFEData } from '../utils/storage';
 import { NFEData } from '../types/nfe';
 import { useToast } from '@/hooks/use-toast';
 
 interface FileUploadProps {
-  onUploadSuccess: (nfeData: NFEData) => void;
+  onUploadSuccess: (nfeData: NFEData[]) => void;
+}
+
+interface FileStatus {
+  file: File;
+  status: 'pending' | 'processing' | 'success' | 'error';
+  nfeData?: NFEData;
+  error?: string;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [fileStatuses, setFileStatuses] = useState<FileStatus[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const handleFile = useCallback(async (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.xml')) {
+  const processFile = async (fileStatus: FileStatus): Promise<FileStatus> => {
+    try {
+      const content = await fileStatus.file.text();
+      const nfeData = parseNFEXML(content, fileStatus.file.name);
+      saveNFEData(nfeData);
+      
+      return {
+        ...fileStatus,
+        status: 'success',
+        nfeData
+      };
+    } catch (error) {
+      console.error('Error processing file:', error);
+      return {
+        ...fileStatus,
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Failed to process the XML file.'
+      };
+    }
+  };
+
+  const handleFiles = useCallback(async (files: FileList) => {
+    const xmlFiles = Array.from(files).filter(file => file.name.toLowerCase().endsWith('.xml'));
+    
+    if (xmlFiles.length === 0) {
       toast({
         title: "Invalid file type",
-        description: "Please select an XML file.",
+        description: "Please select XML files only.",
         variant: "destructive",
       });
       return;
     }
 
+    const initialStatuses: FileStatus[] = xmlFiles.map(file => ({
+      file,
+      status: 'pending'
+    }));
+
+    setFileStatuses(initialStatuses);
     setIsProcessing(true);
-    
+
     try {
-      const content = await file.text();
-      const nfeData = parseNFEXML(content, file.name);
-      saveNFEData(nfeData);
-      onUploadSuccess(nfeData);
-      
-      toast({
-        title: "Success!",
-        description: `NFE ${nfeData.number} imported successfully.`,
-      });
+      // Process all files concurrently
+      const processedStatuses = await Promise.all(
+        initialStatuses.map(async (fileStatus, index) => {
+          // Update status to processing
+          setFileStatuses(prev => prev.map((fs, i) => 
+            i === index ? { ...fs, status: 'processing' } : fs
+          ));
+          
+          const result = await processFile(fileStatus);
+          
+          // Update with final result
+          setFileStatuses(prev => prev.map((fs, i) => 
+            i === index ? result : fs
+          ));
+          
+          return result;
+        })
+      );
+
+      const successfulUploads = processedStatuses
+        .filter(fs => fs.status === 'success' && fs.nfeData)
+        .map(fs => fs.nfeData!);
+
+      const failedUploads = processedStatuses.filter(fs => fs.status === 'error');
+
+      if (successfulUploads.length > 0) {
+        onUploadSuccess(successfulUploads);
+        toast({
+          title: "Upload completed",
+          description: `${successfulUploads.length} NFE(s) imported successfully${failedUploads.length > 0 ? `, ${failedUploads.length} failed` : ''}.`,
+        });
+      }
+
+      if (failedUploads.length > 0 && successfulUploads.length === 0) {
+        toast({
+          title: "Upload failed",
+          description: `Failed to process ${failedUploads.length} file(s).`,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
-      console.error('Error processing file:', error);
+      console.error('Error processing files:', error);
       toast({
-        title: "Import failed",
-        description: error instanceof Error ? error.message : "Failed to process the XML file.",
+        title: "Upload failed",
+        description: "An unexpected error occurred while processing the files.",
         variant: "destructive",
       });
     } finally {
@@ -63,21 +131,51 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
     e.preventDefault();
     setIsDragging(false);
     
-    const files = Array.from(e.dataTransfer.files);
+    const files = e.dataTransfer.files;
     if (files.length > 0) {
-      handleFile(files[0]);
+      handleFiles(files);
     }
-  }, [handleFile]);
+  }, [handleFiles]);
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFile(files[0]);
+      handleFiles(files);
     }
-  }, [handleFile]);
+  }, [handleFiles]);
+
+  const clearFiles = () => {
+    setFileStatuses([]);
+  };
+
+  const getStatusIcon = (status: FileStatus['status']) => {
+    switch (status) {
+      case 'processing':
+        return <Loader2 className="h-4 w-4 animate-spin text-blue-600" />;
+      case 'success':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'error':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      default:
+        return <FileText className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getStatusText = (fileStatus: FileStatus) => {
+    switch (fileStatus.status) {
+      case 'processing':
+        return 'Processing...';
+      case 'success':
+        return `NFE ${fileStatus.nfeData?.number} imported`;
+      case 'error':
+        return fileStatus.error || 'Failed to process';
+      default:
+        return 'Waiting...';
+    }
+  };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
       <div
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
           isDragging
@@ -97,21 +195,22 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
           
           <div className="space-y-2">
             <h3 className="text-lg font-medium text-gray-900">
-              {isProcessing ? 'Processing NFE XML...' : 'Upload NFE XML Files'}
+              {isProcessing ? 'Processing NFE XMLs...' : 'Upload Multiple NFE XML Files'}
             </h3>
             <p className="text-sm text-gray-500">
-              Drag and drop your XML files here, or click to select files
+              Drag and drop multiple XML files here, or click to select files
             </p>
           </div>
 
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <FileText className="h-4 w-4" />
-            <span>Supports XML files only</span>
+            <span>Supports multiple XML files</span>
           </div>
 
           <input
             type="file"
             accept=".xml"
+            multiple
             onChange={handleFileInput}
             className="hidden"
             id="file-upload"
@@ -122,18 +221,59 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
             htmlFor="file-upload"
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer transition-colors duration-200"
           >
-            Select Files
+            Select Multiple Files
           </label>
         </div>
       </div>
+
+      {/* File Status List */}
+      {fileStatuses.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+            <h4 className="text-sm font-medium text-gray-900">
+              Upload Progress ({fileStatuses.length} files)
+            </h4>
+            {!isProcessing && (
+              <button
+                onClick={clearFiles}
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="divide-y divide-gray-200">
+            {fileStatuses.map((fileStatus, index) => (
+              <div key={index} className="px-4 py-3 flex items-center space-x-3">
+                {getStatusIcon(fileStatus.status)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {fileStatus.file.name}
+                  </p>
+                  <p className={`text-xs ${
+                    fileStatus.status === 'error' ? 'text-red-600' :
+                    fileStatus.status === 'success' ? 'text-green-600' :
+                    'text-gray-500'
+                  }`}>
+                    {getStatusText(fileStatus)}
+                  </p>
+                </div>
+                <div className="text-xs text-gray-400">
+                  {(fileStatus.file.size / 1024).toFixed(1)} KB
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
         <div className="flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
           <div className="text-sm text-amber-800">
-            <p className="font-medium">Supported NFE XML format</p>
+            <p className="font-medium">Multiple file upload</p>
             <p className="mt-1">
-              This system supports standard Brazilian NFE XML files. Make sure your XML files contain proper NFE structure with product, seller, and buyer information.
+              You can now upload multiple NFE XML files at once. Each file will be processed independently and you'll see the progress for each upload.
             </p>
           </div>
         </div>
