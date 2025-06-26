@@ -24,6 +24,12 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
   };
 
   try {
+    // Extract NFE key (chNFe)
+    const chNFe = getTextContent('chNFe');
+    if (!chNFe) {
+      throw new Error('NFE key (chNFe) not found in XML');
+    }
+
     // Extract basic NFE info
     const ideElement = xmlDoc.querySelector('ide');
     const nfeNumber = getTextContent('nNF', ideElement);
@@ -84,7 +90,6 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
     const totalElement = xmlDoc.querySelector('total ICMSTot');
     const totalValue = getNumber('vNF', totalElement);
 
-    // Extract taxes
     const taxes = {
       icms: getNumber('vICMS', totalElement),
       ipi: getNumber('vIPI', totalElement),
@@ -94,6 +99,7 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
 
     const nfeData: NFEData = {
       id: `${nfeNumber}-${Date.now()}`,
+      chNFe,
       number: nfeNumber,
       series,
       issueDate,

@@ -1,8 +1,7 @@
-
 import React, { useCallback, useState } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { parseNFEXML } from '../utils/nfeParser';
-import { saveNFEData } from '../utils/storage';
+import { saveNFEData, checkNFEExists } from '../utils/storage';
 import { NFEData } from '../types/nfe';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,7 +11,7 @@ interface FileUploadProps {
 
 interface FileStatus {
   file: File;
-  status: 'pending' | 'processing' | 'success' | 'error';
+  status: 'pending' | 'processing' | 'success' | 'error' | 'duplicate';
   nfeData?: NFEData;
   error?: string;
 }
@@ -27,6 +26,16 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
     try {
       const content = await fileStatus.file.text();
       const nfeData = parseNFEXML(content, fileStatus.file.name);
+      
+      // Check if NFE already exists
+      if (checkNFEExists(nfeData.chNFe)) {
+        return {
+          ...fileStatus,
+          status: 'duplicate',
+          error: `NFE ${nfeData.number} já foi importada anteriormente`
+        };
+      }
+      
       saveNFEData(nfeData);
       
       return {
@@ -88,17 +97,31 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         .filter(fs => fs.status === 'success' && fs.nfeData)
         .map(fs => fs.nfeData!);
 
+      const duplicateUploads = processedStatuses.filter(fs => fs.status === 'duplicate');
       const failedUploads = processedStatuses.filter(fs => fs.status === 'error');
 
       if (successfulUploads.length > 0) {
         onUploadSuccess(successfulUploads);
-        toast({
-          title: "Upload completed",
-          description: `${successfulUploads.length} NFE(s) imported successfully${failedUploads.length > 0 ? `, ${failedUploads.length} failed` : ''}.`,
-        });
       }
 
-      if (failedUploads.length > 0 && successfulUploads.length === 0) {
+      // Show appropriate toast messages
+      if (successfulUploads.length > 0 && duplicateUploads.length === 0 && failedUploads.length === 0) {
+        toast({
+          title: "Upload completed",
+          description: `${successfulUploads.length} NFE(s) imported successfully.`,
+        });
+      } else if (successfulUploads.length > 0) {
+        toast({
+          title: "Upload partially completed",
+          description: `${successfulUploads.length} NFE(s) imported${duplicateUploads.length > 0 ? `, ${duplicateUploads.length} duplicated` : ''}${failedUploads.length > 0 ? `, ${failedUploads.length} failed` : ''}.`,
+        });
+      } else if (duplicateUploads.length > 0 && failedUploads.length === 0) {
+        toast({
+          title: "Duplicate NFEs detected",
+          description: `${duplicateUploads.length} NFE(s) already imported.`,
+          variant: "destructive",
+        });
+      } else {
         toast({
           title: "Upload failed",
           description: `Failed to process ${failedUploads.length} file(s).`,
@@ -154,6 +177,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         return <Loader2 className="h-4 w-4 animate-spin text-blue-600" />;
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'duplicate':
+        return <AlertCircle className="h-4 w-4 text-yellow-600" />;
       case 'error':
         return <XCircle className="h-4 w-4 text-red-600" />;
       default:
@@ -167,6 +192,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         return 'Processing...';
       case 'success':
         return `NFE ${fileStatus.nfeData?.number} imported`;
+      case 'duplicate':
+        return fileStatus.error || 'Duplicate NFE detected';
       case 'error':
         return fileStatus.error || 'Failed to process';
       default:
@@ -252,6 +279,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                   </p>
                   <p className={`text-xs ${
                     fileStatus.status === 'error' ? 'text-red-600' :
+                    fileStatus.status === 'duplicate' ? 'text-yellow-600' :
                     fileStatus.status === 'success' ? 'text-green-600' :
                     'text-gray-500'
                   }`}>
@@ -271,9 +299,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         <div className="flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
           <div className="text-sm text-amber-800">
-            <p className="font-medium">Multiple file upload</p>
+            <p className="font-medium">Duplicate detection</p>
             <p className="mt-1">
-              You can now upload multiple NFE XML files at once. Each file will be processed independently and you'll see the progress for each upload.
+              The system automatically detects duplicate NFE files based on their unique key (chNFe) 
+              and prevents importing the same NFE multiple times.
             </p>
           </div>
         </div>

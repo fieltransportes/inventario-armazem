@@ -14,6 +14,11 @@ export const getNFEData = (): NFEData[] => {
   return data ? JSON.parse(data) : [];
 };
 
+export const checkNFEExists = (chNFe: string): boolean => {
+  const existingData = getNFEData();
+  return existingData.some(nfe => nfe.chNFe === chNFe);
+};
+
 export const deleteNFEData = (id: string): void => {
   const existingData = getNFEData();
   const filteredData = existingData.filter(nfe => nfe.id !== id);

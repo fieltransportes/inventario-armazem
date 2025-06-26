@@ -42,6 +42,7 @@ export interface NFEBuyer {
 
 export interface NFEData {
   id: string;
+  chNFe: string; // Chave de acesso da NFE
   number: string;
   series: string;
   issueDate: string;
