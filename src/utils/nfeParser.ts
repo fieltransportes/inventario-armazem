@@ -1,0 +1,115 @@
+
+import { NFEData, NFEProduct, NFESeller, NFEBuyer } from '../types/nfe';
+
+export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+  
+  // Check for parsing errors
+  const parserError = xmlDoc.querySelector('parsererror');
+  if (parserError) {
+    throw new Error('Invalid XML format');
+  }
+
+  // Helper function to get text content safely
+  const getTextContent = (selector: string, parent: Element | Document = xmlDoc): string => {
+    const element = parent.querySelector(selector);
+    return element?.textContent?.trim() || '';
+  };
+
+  // Helper function to get number safely
+  const getNumber = (selector: string, parent: Element | Document = xmlDoc): number => {
+    const text = getTextContent(selector, parent);
+    return parseFloat(text) || 0;
+  };
+
+  try {
+    // Extract basic NFE info
+    const ideElement = xmlDoc.querySelector('ide');
+    const nfeNumber = getTextContent('nNF', ideElement);
+    const series = getTextContent('serie', ideElement);
+    const issueDate = getTextContent('dhEmi', ideElement);
+
+    // Extract seller info (emit)
+    const emitElement = xmlDoc.querySelector('emit');
+    const seller: NFESeller = {
+      cnpj: getTextContent('CNPJ', emitElement),
+      name: getTextContent('xNome', emitElement),
+      fantasyName: getTextContent('xFant', emitElement),
+      address: {
+        street: getTextContent('xLgr', emitElement),
+        number: getTextContent('nro', emitElement),
+        neighborhood: getTextContent('xBairro', emitElement),
+        city: getTextContent('xMun', emitElement),
+        state: getTextContent('UF', emitElement),
+        zipCode: getTextContent('CEP', emitElement),
+      },
+      email: getTextContent('email', emitElement),
+      phone: getTextContent('fone', emitElement),
+    };
+
+    // Extract buyer info (dest)
+    const destElement = xmlDoc.querySelector('dest');
+    const buyer: NFEBuyer = {
+      cnpj: getTextContent('CNPJ', destElement),
+      cpf: getTextContent('CPF', destElement),
+      name: getTextContent('xNome', destElement),
+      address: {
+        street: getTextContent('xLgr', destElement),
+        number: getTextContent('nro', destElement),
+        neighborhood: getTextContent('xBairro', destElement),
+        city: getTextContent('xMun', destElement),
+        state: getTextContent('UF', destElement),
+        zipCode: getTextContent('CEP', destElement),
+      },
+    };
+
+    // Extract products
+    const detElements = xmlDoc.querySelectorAll('det');
+    const products: NFEProduct[] = Array.from(detElements).map((det, index) => {
+      const prodElement = det.querySelector('prod');
+      return {
+        id: `${nfeNumber}-${index + 1}`,
+        name: getTextContent('xProd', prodElement),
+        quantity: getNumber('qCom', prodElement),
+        unitPrice: getNumber('vUnCom', prodElement),
+        totalPrice: getNumber('vProd', prodElement),
+        unit: getTextContent('uCom', prodElement),
+        ncm: getTextContent('NCM', prodElement),
+        cfop: getTextContent('CFOP', prodElement),
+      };
+    });
+
+    // Extract totals
+    const totalElement = xmlDoc.querySelector('total ICMSTot');
+    const totalValue = getNumber('vNF', totalElement);
+
+    // Extract taxes
+    const taxes = {
+      icms: getNumber('vICMS', totalElement),
+      ipi: getNumber('vIPI', totalElement),
+      pis: getNumber('vPIS', totalElement),
+      cofins: getNumber('vCOFINS', totalElement),
+    };
+
+    const nfeData: NFEData = {
+      id: `${nfeNumber}-${Date.now()}`,
+      number: nfeNumber,
+      series,
+      issueDate,
+      seller,
+      buyer,
+      products,
+      totalValue,
+      taxes,
+      status: 'imported',
+      importedAt: new Date().toISOString(),
+      fileName,
+    };
+
+    return nfeData;
+  } catch (error) {
+    console.error('Error parsing NFE XML:', error);
+    throw new Error('Failed to parse NFE XML. Please check the file format.');
+  }
+};
