@@ -24,10 +24,26 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
   };
 
   try {
-    // Extract NFE key (chNFe)
-    const chNFe = getTextContent('chNFe');
+    // Extract NFE key (chNFe) - try multiple possible locations
+    let chNFe = getTextContent('chNFe');
     if (!chNFe) {
-      throw new Error('NFE key (chNFe) not found in XML');
+      chNFe = getTextContent('infNFe chNFe');
+    }
+    if (!chNFe) {
+      // Try to get from infNFe Id attribute
+      const infNFeElement = xmlDoc.querySelector('infNFe');
+      if (infNFeElement) {
+        const idAttr = infNFeElement.getAttribute('Id');
+        if (idAttr && idAttr.startsWith('NFe')) {
+          chNFe = idAttr.substring(3); // Remove 'NFe' prefix
+        }
+      }
+    }
+    
+    console.log('Extracted chNFe:', chNFe);
+    
+    if (!chNFe || chNFe.length !== 44) {
+      throw new Error('NFE key (chNFe) not found or invalid in XML. Expected 44 characters.');
     }
 
     // Extract basic NFE info

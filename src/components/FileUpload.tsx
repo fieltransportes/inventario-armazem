@@ -25,18 +25,25 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
   const processFile = async (fileStatus: FileStatus): Promise<FileStatus> => {
     try {
       const content = await fileStatus.file.text();
+      console.log('Processing file:', fileStatus.file.name);
+      
       const nfeData = parseNFEXML(content, fileStatus.file.name);
+      console.log('Parsed NFE data, chNFe:', nfeData.chNFe);
       
       // Check if NFE already exists
-      if (checkNFEExists(nfeData.chNFe)) {
+      const isDuplicate = checkNFEExists(nfeData.chNFe);
+      console.log('Duplicate check result:', isDuplicate);
+      
+      if (isDuplicate) {
         return {
           ...fileStatus,
           status: 'duplicate',
-          error: `NFE ${nfeData.number} já foi importada anteriormente`
+          error: `NFE ${nfeData.number} (chNFe: ${nfeData.chNFe.substring(0, 8)}...) já foi importada anteriormente`
         };
       }
       
       saveNFEData(nfeData);
+      console.log('NFE saved successfully');
       
       return {
         ...fileStatus,
@@ -58,8 +65,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
     
     if (xmlFiles.length === 0) {
       toast({
-        title: "Invalid file type",
-        description: "Please select XML files only.",
+        title: "Tipo de arquivo inválido",
+        description: "Por favor, selecione apenas arquivos XML.",
         variant: "destructive",
       });
       return;
@@ -100,6 +107,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
       const duplicateUploads = processedStatuses.filter(fs => fs.status === 'duplicate');
       const failedUploads = processedStatuses.filter(fs => fs.status === 'error');
 
+      console.log('Upload results:', {
+        successful: successfulUploads.length,
+        duplicates: duplicateUploads.length,
+        failed: failedUploads.length
+      });
+
       if (successfulUploads.length > 0) {
         onUploadSuccess(successfulUploads);
       }
@@ -107,32 +120,32 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
       // Show appropriate toast messages
       if (successfulUploads.length > 0 && duplicateUploads.length === 0 && failedUploads.length === 0) {
         toast({
-          title: "Upload completed",
-          description: `${successfulUploads.length} NFE(s) imported successfully.`,
+          title: "Upload concluído",
+          description: `${successfulUploads.length} NFE(s) importada(s) com sucesso.`,
         });
       } else if (successfulUploads.length > 0) {
         toast({
-          title: "Upload partially completed",
-          description: `${successfulUploads.length} NFE(s) imported${duplicateUploads.length > 0 ? `, ${duplicateUploads.length} duplicated` : ''}${failedUploads.length > 0 ? `, ${failedUploads.length} failed` : ''}.`,
+          title: "Upload parcialmente concluído",
+          description: `${successfulUploads.length} NFE(s) importada(s)${duplicateUploads.length > 0 ? `, ${duplicateUploads.length} duplicada(s)` : ''}${failedUploads.length > 0 ? `, ${failedUploads.length} com falha` : ''}.`,
         });
       } else if (duplicateUploads.length > 0 && failedUploads.length === 0) {
         toast({
-          title: "Duplicate NFEs detected",
-          description: `${duplicateUploads.length} NFE(s) already imported.`,
+          title: "NFEs duplicadas detectadas",
+          description: `${duplicateUploads.length} NFE(s) já foram importadas anteriormente.`,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Upload failed",
-          description: `Failed to process ${failedUploads.length} file(s).`,
+          title: "Falha no upload",
+          description: `Falha ao processar ${failedUploads.length} arquivo(s).`,
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Error processing files:', error);
       toast({
-        title: "Upload failed",
-        description: "An unexpected error occurred while processing the files.",
+        title: "Falha no upload",
+        description: "Ocorreu um erro inesperado ao processar os arquivos.",
         variant: "destructive",
       });
     } finally {
@@ -189,15 +202,15 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
   const getStatusText = (fileStatus: FileStatus) => {
     switch (fileStatus.status) {
       case 'processing':
-        return 'Processing...';
+        return 'Processando...';
       case 'success':
-        return `NFE ${fileStatus.nfeData?.number} imported`;
+        return `NFE ${fileStatus.nfeData?.number} importada`;
       case 'duplicate':
-        return fileStatus.error || 'Duplicate NFE detected';
+        return fileStatus.error || 'NFE duplicada detectada';
       case 'error':
-        return fileStatus.error || 'Failed to process';
+        return fileStatus.error || 'Falha ao processar';
       default:
-        return 'Waiting...';
+        return 'Aguardando...';
     }
   };
 
@@ -222,16 +235,16 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
           
           <div className="space-y-2">
             <h3 className="text-lg font-medium text-gray-900">
-              {isProcessing ? 'Processing NFE XMLs...' : 'Upload Multiple NFE XML Files'}
+              {isProcessing ? 'Processando XMLs NFE...' : 'Upload Múltiplos Arquivos XML NFE'}
             </h3>
             <p className="text-sm text-gray-500">
-              Drag and drop multiple XML files here, or click to select files
+              Arraste e solte múltiplos arquivos XML aqui, ou clique para selecionar arquivos
             </p>
           </div>
 
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <FileText className="h-4 w-4" />
-            <span>Supports multiple XML files</span>
+            <span>Suporta múltiplos arquivos XML</span>
           </div>
 
           <input
@@ -248,7 +261,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
             htmlFor="file-upload"
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer transition-colors duration-200"
           >
-            Select Multiple Files
+            Selecionar Múltiplos Arquivos
           </label>
         </div>
       </div>
@@ -258,14 +271,14 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
             <h4 className="text-sm font-medium text-gray-900">
-              Upload Progress ({fileStatuses.length} files)
+              Progresso do Upload ({fileStatuses.length} arquivos)
             </h4>
             {!isProcessing && (
               <button
                 onClick={clearFiles}
                 className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
               >
-                Clear
+                Limpar
               </button>
             )}
           </div>
@@ -299,10 +312,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         <div className="flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
           <div className="text-sm text-amber-800">
-            <p className="font-medium">Duplicate detection</p>
+            <p className="font-medium">Detecção de duplicatas</p>
             <p className="mt-1">
-              The system automatically detects duplicate NFE files based on their unique key (chNFe) 
-              and prevents importing the same NFE multiple times.
+              O sistema detecta automaticamente arquivos NFE duplicados baseado na chave única (chNFe) 
+              e impede a importação da mesma NFE múltiplas vezes.
             </p>
           </div>
         </div>
