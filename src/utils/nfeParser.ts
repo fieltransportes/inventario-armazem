@@ -1,5 +1,6 @@
 
 import { NFEData, NFEProduct, NFESeller, NFEBuyer } from '../types/nfe';
+import { extractOrderNumber } from './supplierConfig';
 
 export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
   const parser = new DOMParser();
@@ -113,6 +114,13 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
       cofins: getNumber('vCOFINS', totalElement),
     };
 
+    // Extract pedido/DT from infCpl
+    const infCpl = getTextContent('infCpl');
+    const pedidoDT = infCpl ? extractOrderNumber(infCpl, seller.cnpj) : null;
+    
+    console.log('Extracted infCpl:', infCpl);
+    console.log('Extracted pedidoDT:', pedidoDT);
+
     const nfeData: NFEData = {
       id: `${nfeNumber}-${Date.now()}`,
       chNFe,
@@ -127,6 +135,7 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
       status: 'imported',
       importedAt: new Date().toISOString(),
       fileName,
+      pedidoDT: pedidoDT || undefined,
     };
 
     return nfeData;

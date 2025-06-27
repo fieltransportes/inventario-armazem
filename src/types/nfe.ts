@@ -59,4 +59,13 @@ export interface NFEData {
   status: 'imported' | 'processed' | 'error';
   importedAt: string;
   fileName: string;
+  pedidoDT?: string; // Número do pedido extraído de infCpl
+}
+
+// Configurações para extração de pedido por fornecedor
+export interface SupplierOrderConfig {
+  cnpj: string;
+  supplierName: string;
+  extractionPattern: string; // Padrão regex ou texto para extrair o pedido
+  description: string; // Descrição do padrão para o usuário
 }
