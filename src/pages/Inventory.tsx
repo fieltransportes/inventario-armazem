@@ -10,6 +10,7 @@ import InventorySummary from '../components/inventory/InventorySummary';
 import ProductList from '../components/inventory/ProductList';
 import NFEList from '../components/inventory/NFEList';
 import EmptyStates from '../components/inventory/EmptyStates';
+import PrintInventory from '../components/inventory/PrintInventory';
 
 interface SearchFilter {
   id: string;
@@ -136,6 +137,12 @@ const Inventory: React.FC = () => {
               <h1 className="text-2xl font-bold text-gray-900">Inventário de Produtos</h1>
             </div>
           </div>
+          {searchFilters.length > 0 && filteredNFEs.length > 0 && (
+            <PrintInventory 
+              inventorySummary={inventorySummary} 
+              searchFilters={searchFilters}
+            />
+          )}
         </div>
 
         {/* Search Section */}

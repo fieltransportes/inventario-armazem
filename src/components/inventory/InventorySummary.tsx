@@ -17,13 +17,6 @@ interface InventorySummaryProps {
 }
 
 const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary }) => {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
   const formatQuantity = (quantity: number, unit: string) => {
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
   };
@@ -39,7 +32,6 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary })
             <TableRow>
               <TableHead>Produto</TableHead>
               <TableHead className="text-right">Quantidade Total</TableHead>
-              <TableHead className="text-right">Valor Total</TableHead>
               <TableHead className="text-center">Ocorrências</TableHead>
             </TableRow>
           </TableHeader>
@@ -49,9 +41,6 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary })
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell className="text-right">
                   {formatQuantity(item.totalQuantity, item.unit)}
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(item.totalValue)}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant="secondary">

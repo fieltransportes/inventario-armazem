@@ -10,13 +10,6 @@ interface NFEListProps {
 }
 
 const NFEList: React.FC<NFEListProps> = ({ nfes }) => {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
   const formatQuantity = (quantity: number, unit: string) => {
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
   };
@@ -38,7 +31,6 @@ const NFEList: React.FC<NFEListProps> = ({ nfes }) => {
                 <p><strong>Data:</strong> {new Date(nfe.issueDate).toLocaleDateString('pt-BR')}</p>
               </div>
               <div>
-                <p><strong>Valor Total:</strong> {formatCurrency(nfe.totalValue)}</p>
                 <p><strong>Chave:</strong> {nfe.chNFe.substring(0, 8)}...{nfe.chNFe.substring(-8)}</p>
               </div>
             </div>
@@ -47,7 +39,6 @@ const NFEList: React.FC<NFEListProps> = ({ nfes }) => {
                 <TableRow>
                   <TableHead>Produto</TableHead>
                   <TableHead className="text-right">Qtd</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -56,9 +47,6 @@ const NFEList: React.FC<NFEListProps> = ({ nfes }) => {
                     <TableCell>{product.name}</TableCell>
                     <TableCell className="text-right">
                       {formatQuantity(product.quantity, product.unit)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(product.totalPrice)}
                     </TableCell>
                   </TableRow>
                 ))}

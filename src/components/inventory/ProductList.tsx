@@ -16,13 +16,6 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ products }) => {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
   const formatQuantity = (quantity: number, unit: string) => {
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
   };
@@ -41,8 +34,6 @@ const ProductList: React.FC<ProductListProps> = ({ products }) => {
               <TableHead>Data</TableHead>
               <TableHead>Fornecedor</TableHead>
               <TableHead className="text-right">Quantidade</TableHead>
-              <TableHead className="text-right">Valor Unit.</TableHead>
-              <TableHead className="text-right">Valor Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -56,12 +47,6 @@ const ProductList: React.FC<ProductListProps> = ({ products }) => {
                 <TableCell className="max-w-xs truncate">{product.seller}</TableCell>
                 <TableCell className="text-right">
                   {formatQuantity(product.quantity, product.unit)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(product.unitPrice)}
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(product.totalPrice)}
                 </TableCell>
               </TableRow>
             ))}
