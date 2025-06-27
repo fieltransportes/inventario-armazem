@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FileUpload from '../components/FileUpload';
 import NFEList from '../components/NFEList';
+import NFEDetails from '../components/NFEDetails';
 import { getNFEData, clearAllNFEData } from '../utils/storage';
 import { NFEData } from '../types/nfe';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 const Index = () => {
   const navigate = useNavigate();
   const [nfeData, setNfeData] = useState<NFEData[]>([]);
+  const [selectedNFE, setSelectedNFE] = useState<NFEData | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,6 +35,19 @@ const Index = () => {
 
   const handleUploadSuccess = (newNfeData: NFEData[]) => {
     setNfeData(prev => [...prev, ...newNfeData]);
+  };
+
+  const handleRefresh = () => {
+    const storedData = getNFEData();
+    setNfeData(storedData);
+  };
+
+  const handleViewDetails = (nfe: NFEData) => {
+    setSelectedNFE(nfe);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedNFE(null);
   };
 
   return (
@@ -153,7 +168,8 @@ const Index = () => {
             {nfeData.length > 0 ? (
               <NFEList 
                 nfeData={nfeData} 
-                onDelete={(id) => setNfeData(prev => prev.filter(nfe => nfe.id !== id))} 
+                onRefresh={handleRefresh}
+                onViewDetails={handleViewDetails}
               />
             ) : (
               <Card>
@@ -163,14 +179,19 @@ const Index = () => {
                   <p className="text-gray-600 mb-4">
                     Faça upload de arquivos XML para começar a gerenciar suas notas fiscais
                   </p>
-                  <Button onClick={() => document.querySelector('[data-state="active"]')?.click()}>
-                    Fazer Upload
-                  </Button>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
         </Tabs>
+
+        {/* NFE Details Modal */}
+        {selectedNFE && (
+          <NFEDetails 
+            nfe={selectedNFE} 
+            onClose={handleCloseDetails}
+          />
+        )}
       </div>
     </div>
   );
