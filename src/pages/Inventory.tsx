@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Package, FileText, Hash } from 'lucide-react';
+import { ArrowLeft, Search, Package, FileText, Hash, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,28 +11,60 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getNFEData } from '../utils/storage';
 import { NFEData, NFEProduct } from '../types/nfe';
 
+interface SearchFilter {
+  id: string;
+  type: 'number' | 'chave';
+  value: string;
+}
+
 const Inventory: React.FC = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
+  const [currentSearchTerm, setCurrentSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'number' | 'chave'>('number');
   
   // Get all NFE data
   const allNFEData = getNFEData();
   
-  // Filter NFEs based on search
-  const filteredNFEs = useMemo(() => {
-    if (!searchTerm.trim()) return [];
+  // Add search filter
+  const handleAddFilter = () => {
+    if (!currentSearchTerm.trim()) return;
     
-    const term = searchTerm.toLowerCase().trim();
+    const newFilter: SearchFilter = {
+      id: Date.now().toString(),
+      type: searchType,
+      value: currentSearchTerm.trim()
+    };
+    
+    setSearchFilters(prev => [...prev, newFilter]);
+    setCurrentSearchTerm('');
+  };
+  
+  // Remove search filter
+  const handleRemoveFilter = (filterId: string) => {
+    setSearchFilters(prev => prev.filter(filter => filter.id !== filterId));
+  };
+  
+  // Clear all filters
+  const handleClearAllFilters = () => {
+    setSearchFilters([]);
+  };
+  
+  // Filter NFEs based on search filters
+  const filteredNFEs = useMemo(() => {
+    if (searchFilters.length === 0) return [];
     
     return allNFEData.filter(nfe => {
-      if (searchType === 'number') {
-        return nfe.number.toLowerCase().includes(term);
-      } else {
-        return nfe.chNFe.toLowerCase().includes(term);
-      }
+      return searchFilters.some(filter => {
+        const term = filter.value.toLowerCase();
+        if (filter.type === 'number') {
+          return nfe.number.toLowerCase().includes(term);
+        } else {
+          return nfe.chNFe.toLowerCase().includes(term);
+        }
+      });
     });
-  }, [allNFEData, searchTerm, searchType]);
+  }, [allNFEData, searchFilters]);
   
   // Get all products from filtered NFEs
   const allProducts = useMemo(() => {
@@ -95,6 +127,12 @@ const Inventory: React.FC = () => {
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleAddFilter();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -122,10 +160,11 @@ const Inventory: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Search className="h-5 w-5" />
-              <span>Pesquisar NFEs</span>
+              <span>Filtrar NFEs</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Search Input */}
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
               <div className="flex space-x-2">
                 <Button
@@ -147,23 +186,72 @@ const Inventory: React.FC = () => {
                   <span>Chave de Acesso</span>
                 </Button>
               </div>
-              <div className="flex-1">
+              <div className="flex flex-1 space-x-2">
                 <Input
                   type="text"
                   placeholder={searchType === 'number' ? 'Digite o número da NFE...' : 'Digite a chave de acesso...'}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
+                  value={currentSearchTerm}
+                  onChange={(e) => setCurrentSearchTerm(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1"
                 />
+                <Button 
+                  onClick={handleAddFilter}
+                  disabled={!currentSearchTerm.trim()}
+                  className="flex items-center space-x-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Adicionar</span>
+                </Button>
               </div>
             </div>
             
-            {searchTerm && (
+            {/* Active Filters */}
+            {searchFilters.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-gray-700">Filtros ativos:</div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearAllFilters}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Limpar todos
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {searchFilters.map((filter) => (
+                    <Badge
+                      key={filter.id}
+                      variant="secondary"
+                      className="flex items-center space-x-2 px-3 py-1"
+                    >
+                      <span className="text-xs font-medium">
+                        {filter.type === 'number' ? 'NFE' : 'Chave'}:
+                      </span>
+                      <span className="max-w-[200px] truncate">{filter.value}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveFilter(filter.id)}
+                        className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground rounded-full"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Results Summary */}
+            {searchFilters.length > 0 && (
               <div className="text-sm text-gray-600">
                 {filteredNFEs.length > 0 ? (
                   <>Encontradas {filteredNFEs.length} NFE(s) • {allProducts.length} produto(s)</>
                 ) : (
-                  <>Nenhuma NFE encontrada para "{searchTerm}"</>
+                  <>Nenhuma NFE encontrada com os filtros aplicados</>
                 )}
               </div>
             )}
@@ -171,7 +259,7 @@ const Inventory: React.FC = () => {
         </Card>
 
         {/* Results */}
-        {searchTerm && filteredNFEs.length > 0 && (
+        {searchFilters.length > 0 && filteredNFEs.length > 0 && (
           <Tabs defaultValue="summary" className="space-y-4">
             <TabsList>
               <TabsTrigger value="summary">Resumo do Inventário</TabsTrigger>
@@ -313,13 +401,26 @@ const Inventory: React.FC = () => {
         )}
 
         {/* Empty State */}
-        {!searchTerm && (
+        {searchFilters.length === 0 && (
           <Card>
             <CardContent className="text-center py-12">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Iniciar Inventário</h3>
               <p className="text-gray-600 mb-4">
-                Digite o número da NFE ou chave de acesso para filtrar os produtos do armazém
+                Adicione números de NFE ou chaves de acesso para filtrar os produtos do armazém
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* No Results State */}
+        {searchFilters.length > 0 && filteredNFEs.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma NFE encontrada</h3>
+              <p className="text-gray-600 mb-4">
+                Verifique os filtros aplicados e tente novamente
               </p>
             </CardContent>
           </Card>
