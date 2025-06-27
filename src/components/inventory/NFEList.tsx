@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { FileText } from 'lucide-react';
 import { NFEData } from '../../types/nfe';
 
 interface NFEListProps {
@@ -20,7 +21,17 @@ const NFEList: React.FC<NFEListProps> = ({ nfes }) => {
         <Card key={nfe.id}>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>NFE {nfe.number} - Série {nfe.series}</span>
+              <div className="flex items-center space-x-4">
+                <span>NFE {nfe.number} - Série {nfe.series}</span>
+                {nfe.pedidoDT && (
+                  <div className="flex items-center space-x-1 bg-orange-100 px-2 py-1 rounded-full">
+                    <FileText className="h-3 w-3 text-orange-600" />
+                    <span className="text-xs font-medium text-orange-800">
+                      Pedido/DT: {nfe.pedidoDT}
+                    </span>
+                  </div>
+                )}
+              </div>
               <Badge variant="secondary">{nfe.products.length} produtos</Badge>
             </CardTitle>
           </CardHeader>
@@ -32,6 +43,9 @@ const NFEList: React.FC<NFEListProps> = ({ nfes }) => {
               </div>
               <div>
                 <p><strong>Chave:</strong> {nfe.chNFe.substring(0, 8)}...{nfe.chNFe.substring(-8)}</p>
+                {nfe.pedidoDT && (
+                  <p><strong>Pedido/DT:</strong> {nfe.pedidoDT}</p>
+                )}
               </div>
             </div>
             <Table>

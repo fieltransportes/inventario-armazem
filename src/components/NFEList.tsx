@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { NFEData } from '../types/nfe';
-import { Eye, Trash2, Search, Calendar, Building, DollarSign } from 'lucide-react';
+import { Eye, Trash2, Search, Calendar, Building, DollarSign, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteNFEData } from '../utils/storage';
 
@@ -18,7 +18,8 @@ const NFEList: React.FC<NFEListProps> = ({ nfeData, onRefresh, onViewDetails }) 
   const filteredData = nfeData.filter(nfe =>
     nfe.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     nfe.seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    nfe.buyer.name.toLowerCase().includes(searchTerm.toLowerCase())
+    nfe.buyer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (nfe.pedidoDT && nfe.pedidoDT.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleDelete = async (id: string, nfeNumber: string) => {
@@ -68,7 +69,7 @@ const NFEList: React.FC<NFEListProps> = ({ nfeData, onRefresh, onViewDetails }) 
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by NFE number, seller, or buyer..."
+            placeholder="Search by NFE number, seller, buyer, or Pedido/DT..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -86,6 +87,9 @@ const NFEList: React.FC<NFEListProps> = ({ nfeData, onRefresh, onViewDetails }) 
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   NFE Number
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Pedido/DT
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Seller
@@ -121,6 +125,18 @@ const NFEList: React.FC<NFEListProps> = ({ nfeData, onRefresh, onViewDetails }) 
                         </div>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {nfe.pedidoDT ? (
+                      <div className="flex items-center">
+                        <FileText className="h-4 w-4 mr-2 text-blue-500" />
+                        <span className="text-sm font-medium text-blue-900">
+                          {nfe.pedidoDT}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{nfe.seller.name}</div>

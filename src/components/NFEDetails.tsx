@@ -37,7 +37,7 @@ const NFEDetails: React.FC<NFEDetailsProps> = ({ nfe, onClose }) => {
 
         <div className="p-6 space-y-6">
           {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="flex items-center mb-2">
                 <FileText className="h-5 w-5 text-blue-600 mr-2" />
@@ -45,6 +45,18 @@ const NFEDetails: React.FC<NFEDetailsProps> = ({ nfe, onClose }) => {
               </div>
               <p className="text-lg font-semibold text-blue-900">{nfe.number}</p>
               <p className="text-sm text-blue-700">Series: {nfe.series}</p>
+            </div>
+
+            <div className="bg-orange-50 p-4 rounded-lg">
+              <div className="flex items-center mb-2">
+                <FileText className="h-5 w-5 text-orange-600 mr-2" />
+                <span className="font-medium text-orange-900">Pedido/DT</span>
+              </div>
+              {nfe.pedidoDT ? (
+                <p className="text-lg font-semibold text-orange-900">{nfe.pedidoDT}</p>
+              ) : (
+                <p className="text-sm text-orange-700">Não encontrado</p>
+              )}
             </div>
 
             <div className="bg-green-50 p-4 rounded-lg">
