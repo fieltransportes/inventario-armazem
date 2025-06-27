@@ -10,48 +10,41 @@ import NFEDetails from '../components/NFEDetails';
 import { getNFEData, clearAllNFEData } from '../utils/storage';
 import { NFEData } from '../types/nfe';
 import { useToast } from '@/hooks/use-toast';
-
 const Index = () => {
   const navigate = useNavigate();
   const [nfeData, setNfeData] = useState<NFEData[]>([]);
   const [selectedNFE, setSelectedNFE] = useState<NFEData | null>(null);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     const storedData = getNFEData();
     setNfeData(storedData);
   }, []);
-
   const handleClearAll = () => {
     if (window.confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
       clearAllNFEData();
       setNfeData([]);
       toast({
         title: "Dados limpos",
-        description: "Todos os dados NFE foram removidos com sucesso.",
+        description: "Todos os dados NFE foram removidos com sucesso."
       });
     }
   };
-
   const handleUploadSuccess = (newNfeData: NFEData[]) => {
     setNfeData(prev => [...prev, ...newNfeData]);
   };
-
   const handleRefresh = () => {
     const storedData = getNFEData();
     setNfeData(storedData);
   };
-
   const handleViewDetails = (nfe: NFEData) => {
     setSelectedNFE(nfe);
   };
-
   const handleCloseDetails = () => {
     setSelectedNFE(null);
   };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
@@ -66,25 +59,15 @@ const Index = () => {
           </div>
           
           <div className="flex space-x-2">
-            <Button
-              onClick={() => navigate('/inventory')}
-              className="flex items-center space-x-2"
-            >
+            <Button onClick={() => navigate('/inventory')} className="flex items-center space-x-2">
               <Package className="h-4 w-4" />
               <span>Inventário</span>
             </Button>
             
-            {nfeData.length > 0 && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleClearAll}
-                className="flex items-center space-x-2"
-              >
+            {nfeData.length > 0 && <Button variant="destructive" size="sm" onClick={handleClearAll} className="flex items-center space-x-2">
                 <Trash2 className="h-4 w-4" />
                 <span>Limpar Tudo</span>
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
 
@@ -126,9 +109,9 @@ const Index = () => {
             <CardContent>
               <div className="text-2xl font-bold">
                 {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(nfeData.reduce((total, nfe) => total + nfe.totalValue, 0))}
+                style: 'currency',
+                currency: 'BRL'
+              }).format(nfeData.reduce((total, nfe) => total + nfe.totalValue, 0))}
               </div>
               <p className="text-xs text-muted-foreground">
                 Valor das notas importadas
@@ -153,7 +136,7 @@ const Index = () => {
           <TabsContent value="upload">
             <Card>
               <CardHeader>
-                <CardTitle>Import NFE XML Files</CardTitle>
+                <CardTitle>importar Arquivo XML - NFE</CardTitle>
                 <CardDescription>
                   Faça upload de múltiplos arquivos XML de Notas Fiscais Eletrônicas para importação automática
                 </CardDescription>
@@ -165,14 +148,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="nfes">
-            {nfeData.length > 0 ? (
-              <NFEList 
-                nfeData={nfeData} 
-                onRefresh={handleRefresh}
-                onViewDetails={handleViewDetails}
-              />
-            ) : (
-              <Card>
+            {nfeData.length > 0 ? <NFEList nfeData={nfeData} onRefresh={handleRefresh} onViewDetails={handleViewDetails} /> : <Card>
                 <CardContent className="text-center py-12">
                   <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma NFE importada</h3>
@@ -180,21 +156,13 @@ const Index = () => {
                     Faça upload de arquivos XML para começar a gerenciar suas notas fiscais
                   </p>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
           </TabsContent>
         </Tabs>
 
         {/* NFE Details Modal */}
-        {selectedNFE && (
-          <NFEDetails 
-            nfe={selectedNFE} 
-            onClose={handleCloseDetails}
-          />
-        )}
+        {selectedNFE && <NFEDetails nfe={selectedNFE} onClose={handleCloseDetails} />}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
