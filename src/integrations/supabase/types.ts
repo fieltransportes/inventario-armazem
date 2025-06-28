@@ -9,13 +9,120 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      inventories: {
+        Row: {
+          assigned_users: string[] | null
+          created_at: string
+          id: string
+          inventory_number: string
+          notes: string | null
+          search_filters: Json
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          assigned_users?: string[] | null
+          created_at?: string
+          id?: string
+          inventory_number: string
+          notes?: string | null
+          search_filters: Json
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          assigned_users?: string[] | null
+          created_at?: string
+          id?: string
+          inventory_number?: string
+          notes?: string | null
+          search_filters?: Json
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      inventory_items: {
+        Row: {
+          counted_quantity: number | null
+          created_at: string
+          expected_quantity: number
+          id: string
+          inventory_id: string
+          product_name: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          counted_quantity?: number | null
+          created_at?: string
+          expected_quantity: number
+          id?: string
+          inventory_id: string
+          product_name: string
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          counted_quantity?: number | null
+          created_at?: string
+          expected_quantity?: number
+          id?: string
+          inventory_id?: string
+          product_name?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: string
+      }
+      user_has_inventory_access: {
+        Args: { inventory_id: string; user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

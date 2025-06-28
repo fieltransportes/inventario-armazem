@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package } from 'lucide-react';
+import { ArrowLeft, Package, Save as SaveIcon, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getNFEData } from '../utils/storage';
@@ -11,6 +11,8 @@ import ProductList from '../components/inventory/ProductList';
 import NFEList from '../components/inventory/NFEList';
 import EmptyStates from '../components/inventory/EmptyStates';
 import PrintInventory from '../components/inventory/PrintInventory';
+import SaveInventoryDialog from '../components/inventory/SaveInventoryDialog';
+import SavedInventoriesList from '../components/inventory/SavedInventoriesList';
 
 interface SearchFilter {
   id: string;
@@ -23,6 +25,8 @@ const Inventory: React.FC = () => {
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [currentSearchTerm, setCurrentSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'number' | 'chave'>('number');
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('search');
   
   // Get all NFE data
   const allNFEData = getNFEData();
@@ -137,59 +141,100 @@ const Inventory: React.FC = () => {
               <h1 className="text-2xl font-bold text-gray-900">Inventário de Produtos</h1>
             </div>
           </div>
-          {searchFilters.length > 0 && filteredNFEs.length > 0 && (
-            <PrintInventory 
-              inventorySummary={inventorySummary} 
-              searchFilters={searchFilters}
-            />
-          )}
         </div>
 
-        {/* Search Section */}
-        <SearchFilters
+        {/* Main Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="search">Buscar e Criar</TabsTrigger>
+            <TabsTrigger value="saved">Inventários Salvos</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="search" className="space-y-6">
+            {/* Search Section */}
+            <SearchFilters
+              searchFilters={searchFilters}
+              currentSearchTerm={currentSearchTerm}
+              searchType={searchType}
+              onSearchTermChange={setCurrentSearchTerm}
+              onSearchTypeChange={setSearchType}
+              onAddFilter={handleAddFilter}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAllFilters={handleClearAllFilters}
+              resultsCount={{ nfes: filteredNFEs.length, products: allProducts.length }}
+            />
+
+            {/* Results */}
+            {searchFilters.length > 0 && filteredNFEs.length > 0 && (
+              <>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-semibold">Resultados da Busca</h2>
+                  <div className="flex space-x-2">
+                    <PrintInventory 
+                      inventorySummary={inventorySummary} 
+                      searchFilters={searchFilters}
+                    />
+                    <Button 
+                      onClick={() => setSaveDialogOpen(true)}
+                      className="flex items-center space-x-2"
+                    >
+                      <SaveIcon className="h-4 w-4" />
+                      <span>Salvar Inventário</span>
+                    </Button>
+                  </div>
+                </div>
+
+                <Tabs defaultValue="summary" className="space-y-4">
+                  <TabsList>
+                    <TabsTrigger value="summary">Resumo do Inventário</TabsTrigger>
+                    <TabsTrigger value="detailed">Lista Detalhada</TabsTrigger>
+                    <TabsTrigger value="nfes">NFEs Encontradas</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="summary">
+                    <InventorySummary inventorySummary={inventorySummary} />
+                  </TabsContent>
+
+                  <TabsContent value="detailed">
+                    <ProductList products={allProducts} />
+                  </TabsContent>
+
+                  <TabsContent value="nfes">
+                    <NFEList nfes={filteredNFEs} />
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+
+            {/* Empty State */}
+            {searchFilters.length === 0 && (
+              <EmptyStates type="initial" />
+            )}
+
+            {/* No Results State */}
+            {searchFilters.length > 0 && filteredNFEs.length === 0 && (
+              <EmptyStates type="no-results" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="saved">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Archive className="h-5 w-5 text-blue-600" />
+                <h2 className="text-lg font-semibold">Inventários Salvos</h2>
+              </div>
+              <SavedInventoriesList />
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Save Inventory Dialog */}
+        <SaveInventoryDialog
+          open={saveDialogOpen}
+          onOpenChange={setSaveDialogOpen}
           searchFilters={searchFilters}
-          currentSearchTerm={currentSearchTerm}
-          searchType={searchType}
-          onSearchTermChange={setCurrentSearchTerm}
-          onSearchTypeChange={setSearchType}
-          onAddFilter={handleAddFilter}
-          onRemoveFilter={handleRemoveFilter}
-          onClearAllFilters={handleClearAllFilters}
-          resultsCount={{ nfes: filteredNFEs.length, products: allProducts.length }}
+          inventorySummary={inventorySummary}
         />
-
-        {/* Results */}
-        {searchFilters.length > 0 && filteredNFEs.length > 0 && (
-          <Tabs defaultValue="summary" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="summary">Resumo do Inventário</TabsTrigger>
-              <TabsTrigger value="detailed">Lista Detalhada</TabsTrigger>
-              <TabsTrigger value="nfes">NFEs Encontradas</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="summary">
-              <InventorySummary inventorySummary={inventorySummary} />
-            </TabsContent>
-
-            <TabsContent value="detailed">
-              <ProductList products={allProducts} />
-            </TabsContent>
-
-            <TabsContent value="nfes">
-              <NFEList nfes={filteredNFEs} />
-            </TabsContent>
-          </Tabs>
-        )}
-
-        {/* Empty State */}
-        {searchFilters.length === 0 && (
-          <EmptyStates type="initial" />
-        )}
-
-        {/* No Results State */}
-        {searchFilters.length > 0 && filteredNFEs.length === 0 && (
-          <EmptyStates type="no-results" />
-        )}
       </div>
     </div>
   );
