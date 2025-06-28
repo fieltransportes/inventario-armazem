@@ -8,7 +8,7 @@ export interface SavedInventory {
   inventory_number: string;
   created_at: string;
   search_filters: any;
-  status: 'open' | 'completed';
+  status: string; // Changed from 'open' | 'completed' to string to match database
   notes?: string;
   user_id: string;
   assigned_users: string[];
