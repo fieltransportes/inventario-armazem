@@ -85,6 +85,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string
           created_at: string
           email: string | null
           full_name: string | null
@@ -93,6 +94,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approval_status?: string
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -101,6 +103,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approval_status?: string
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -118,6 +121,10 @@ export type Database = {
       get_user_role: {
         Args: { user_id: string }
         Returns: string
+      }
+      is_user_approved: {
+        Args: { user_id: string }
+        Returns: boolean
       }
       user_has_inventory_access: {
         Args: { inventory_id: string; user_id: string }
