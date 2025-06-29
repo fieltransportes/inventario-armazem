@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Inventory from "./pages/Inventory";
 import Auth from "./pages/Auth";
+import Upload from "./pages/Upload";
 import UserManagementPage from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
