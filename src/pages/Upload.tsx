@@ -1,24 +1,47 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload as UploadIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NFEData } from '@/types/nfe';
 import { useToast } from '@/hooks/use-toast';
+import { getNFEData } from '@/utils/storage';
 import Navbar from '@/components/Navbar';
 import FileUpload from '@/components/FileUpload';
+import NFEList from '@/components/NFEList';
+import NFEDetails from '@/components/NFEDetails';
 
 const Upload: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [uploadedNFEs, setUploadedNFEs] = useState<NFEData[]>([]);
+  const [allNFEs, setAllNFEs] = useState<NFEData[]>([]);
+  const [selectedNFE, setSelectedNFE] = useState<NFEData | null>(null);
+
+  const loadNFEData = () => {
+    const nfeData = getNFEData();
+    setAllNFEs(nfeData);
+  };
+
+  useEffect(() => {
+    loadNFEData();
+  }, []);
 
   const handleUploadSuccess = (nfeData: NFEData[]) => {
     setUploadedNFEs(prev => [...prev, ...nfeData]);
+    loadNFEData(); // Reload all NFE data to show the newly uploaded ones
     toast({
       title: "Upload concluído",
       description: `${nfeData.length} NFE(s) importada(s) com sucesso.`,
     });
+  };
+
+  const handleViewDetails = (nfe: NFEData) => {
+    setSelectedNFE(nfe);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedNFE(null);
   };
 
   return (
@@ -53,6 +76,16 @@ const Upload: React.FC = () => {
             <FileUpload onUploadSuccess={handleUploadSuccess} />
           </div>
 
+          {/* Lista de NFEs Importadas */}
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <h2 className="text-lg font-semibold mb-4">NFEs Importadas</h2>
+            <NFEList 
+              nfeData={allNFEs} 
+              onRefresh={loadNFEData}
+              onViewDetails={handleViewDetails}
+            />
+          </div>
+
           {uploadedNFEs.length > 0 && (
             <div className="bg-white rounded-lg p-6 shadow-sm border">
               <h3 className="text-lg font-semibold mb-4">NFEs Importadas Nesta Sessão</h3>
@@ -82,6 +115,14 @@ const Upload: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de detalhes da NFE */}
+      {selectedNFE && (
+        <NFEDetails 
+          nfe={selectedNFE}
+          onClose={handleCloseDetails}
+        />
+      )}
     </div>
   );
 };
