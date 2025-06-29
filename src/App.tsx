@@ -28,6 +28,11 @@ const App = () => (
                 <Index />
               </ProtectedRoute>
             } />
+            <Route path="/upload" element={
+              <ProtectedRoute>
+                <Upload />
+              </ProtectedRoute>
+            } />
             <Route path="/inventory" element={
               <ProtectedRoute>
                 <Inventory />

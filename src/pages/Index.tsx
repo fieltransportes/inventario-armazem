@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +11,8 @@ const Index = () => {
   const { toast } = useToast();
 
   const handleUpload = () => {
-    // Redirecionar para a página de inventário onde está o upload de NFEs
-    navigate('/inventory');
+    // Redirecionar para a página de upload de NFEs
+    navigate('/upload');
   };
 
   const handleReports = () => {
