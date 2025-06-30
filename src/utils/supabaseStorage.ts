@@ -54,9 +54,9 @@ export const getNFEsFromSupabase = async (): Promise<NFEData[]> => {
     number: item.number,
     series: item.series,
     issueDate: item.issue_date,
-    seller: item.seller as NFESeller,
-    buyer: item.buyer as NFEBuyer,
-    products: item.products as NFEProduct[],
+    seller: item.seller as unknown as NFESeller,
+    buyer: item.buyer as unknown as NFEBuyer,
+    products: item.products as unknown as NFEProduct[],
     totalValue: item.total_value || 0,
     taxes: {
       icms: 0,
