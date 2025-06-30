@@ -11,18 +11,18 @@ export const saveNFEToSupabase = async (nfeData: NFEData): Promise<void> => {
 
   const { error } = await supabase
     .from('nfe_data')
-    .insert([{
+    .insert({
       ch_nfe: nfeData.chNFe,
       number: nfeData.number,
       series: nfeData.series,
       issue_date: nfeData.issueDate,
-      seller: nfeData.seller,
-      buyer: nfeData.buyer,
-      products: nfeData.products,
+      seller: nfeData.seller as unknown as Json,
+      buyer: nfeData.buyer as unknown as Json,
+      products: nfeData.products as unknown as Json,
       total_value: nfeData.totalValue,
       pedido_dt: nfeData.pedidoDT || null,
       user_id: user.id
-    }]);
+    });
 
   if (error) {
     console.error('Erro ao salvar NFE:', error);
