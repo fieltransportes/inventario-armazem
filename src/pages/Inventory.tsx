@@ -1,10 +1,11 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Save as SaveIcon, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getNFEData } from '../utils/storage';
+import { NFEData } from '../types/nfe';
 import SearchFilters from '../components/inventory/SearchFilters';
 import InventorySummary from '../components/inventory/InventorySummary';
 import ProductList from '../components/inventory/ProductList';
@@ -27,9 +28,25 @@ const Inventory: React.FC = () => {
   const [searchType, setSearchType] = useState<'number' | 'chave'>('number');
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('search');
+  const [allNFEData, setAllNFEData] = useState<NFEData[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Get all NFE data
-  const allNFEData = getNFEData();
+  // Load NFE data on component mount
+  useEffect(() => {
+    const loadNFEData = async () => {
+      try {
+        setLoading(true);
+        const nfeData = await getNFEData();
+        setAllNFEData(nfeData);
+      } catch (error) {
+        console.error('Erro ao carregar dados NFE:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNFEData();
+  }, []);
   
   // Add search filter
   const handleAddFilter = () => {
@@ -120,6 +137,15 @@ const Inventory: React.FC = () => {
     
     return Array.from(summary.values()).sort((a, b) => b.totalValue - a.totalValue);
   }, [allProducts]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Carregando dados NFE...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
