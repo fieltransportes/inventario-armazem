@@ -30,8 +30,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
       const nfeData = parseNFEXML(content, fileStatus.file.name);
       console.log('Parsed NFE data, chNFe:', nfeData.chNFe);
       
-      // Check if NFE already exists
-      const isDuplicate = checkNFEExists(nfeData.chNFe);
+      // Check if NFE already exists in Supabase
+      const isDuplicate = await checkNFEExists(nfeData.chNFe);
       console.log('Duplicate check result:', isDuplicate);
       
       if (isDuplicate) {
@@ -42,7 +42,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         };
       }
       
-      saveNFEData(nfeData);
+      await saveNFEData(nfeData);
       console.log('NFE saved successfully');
       
       return {
@@ -312,10 +312,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         <div className="flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
           <div className="text-sm text-amber-800">
-            <p className="font-medium">Detecção de duplicatas</p>
+            <p className="font-medium">Armazenamento permanente</p>
             <p className="mt-1">
-              O sistema detecta automaticamente arquivos NFE duplicados baseado na chave única (chNFe) 
-              e impede a importação da mesma NFE múltiplas vezes.
+              As NFEs são armazenadas permanentemente no banco de dados e ficam disponíveis 
+              mesmo após fechar o navegador. Apenas usuários autorizados podem deletar os dados.
             </p>
           </div>
         </div>

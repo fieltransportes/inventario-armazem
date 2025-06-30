@@ -83,6 +83,54 @@ export type Database = {
           },
         ]
       }
+      nfe_data: {
+        Row: {
+          buyer: Json
+          ch_nfe: string
+          created_at: string
+          id: string
+          issue_date: string
+          number: string
+          pedido_dt: string | null
+          products: Json
+          seller: Json
+          series: string
+          total_value: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buyer: Json
+          ch_nfe: string
+          created_at?: string
+          id?: string
+          issue_date: string
+          number: string
+          pedido_dt?: string | null
+          products: Json
+          seller: Json
+          series: string
+          total_value?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buyer?: Json
+          ch_nfe?: string
+          created_at?: string
+          id?: string
+          issue_date?: string
+          number?: string
+          pedido_dt?: string | null
+          products?: Json
+          seller?: Json
+          series?: string
+          total_value?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approval_status: string
