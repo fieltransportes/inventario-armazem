@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Save as SaveIcon, Archive } from 'lucide-react';
@@ -10,6 +9,7 @@ import SearchFilters from '../components/inventory/SearchFilters';
 import InventorySummary from '../components/inventory/InventorySummary';
 import ProductList from '../components/inventory/ProductList';
 import NFEList from '../components/inventory/NFEList';
+import DeliveryGrouping from '../components/inventory/DeliveryGrouping';
 import EmptyStates from '../components/inventory/EmptyStates';
 import PrintInventory from '../components/inventory/PrintInventory';
 import SaveInventoryDialog from '../components/inventory/SaveInventoryDialog';
@@ -214,6 +214,7 @@ const Inventory: React.FC = () => {
                   <TabsList>
                     <TabsTrigger value="summary">Resumo do Inventário</TabsTrigger>
                     <TabsTrigger value="detailed">Lista Detalhada</TabsTrigger>
+                    <TabsTrigger value="delivery">Por Entrega</TabsTrigger>
                     <TabsTrigger value="nfes">NFEs Encontradas</TabsTrigger>
                   </TabsList>
 
@@ -223,6 +224,10 @@ const Inventory: React.FC = () => {
 
                   <TabsContent value="detailed">
                     <ProductList products={allProducts} />
+                  </TabsContent>
+
+                  <TabsContent value="delivery">
+                    <DeliveryGrouping filteredNFEs={filteredNFEs} />
                   </TabsContent>
 
                   <TabsContent value="nfes">

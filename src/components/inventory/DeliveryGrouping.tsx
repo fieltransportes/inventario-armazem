@@ -1,0 +1,147 @@
+
+import React, { useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Building, User, FileText, Package } from 'lucide-react';
+import { NFEData } from '@/types/nfe';
+
+interface DeliveryGroup {
+  seller: string;
+  sellerCnpj: string;
+  buyer: string;
+  buyerDoc: string;
+  orderNumber: string | null;
+  nfes: NFEData[];
+  totalProducts: number;
+  totalValue: number;
+}
+
+interface DeliveryGroupingProps {
+  filteredNFEs: NFEData[];
+}
+
+const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => {
+  const deliveryGroups = useMemo(() => {
+    const groups = new Map<string, DeliveryGroup>();
+    
+    filteredNFEs.forEach(nfe => {
+      const key = `${nfe.seller.cnpj}-${nfe.buyer.cnpj || nfe.buyer.cpf}-${nfe.pedidoDT || 'sem-pedido'}`;
+      
+      if (groups.has(key)) {
+        const existing = groups.get(key)!;
+        existing.nfes.push(nfe);
+        existing.totalProducts += nfe.products.length;
+        existing.totalValue += nfe.totalValue;
+      } else {
+        groups.set(key, {
+          seller: nfe.seller.name,
+          sellerCnpj: nfe.seller.cnpj,
+          buyer: nfe.buyer.name,
+          buyerDoc: nfe.buyer.cnpj || nfe.buyer.cpf || '',
+          orderNumber: nfe.pedidoDT || null,
+          nfes: [nfe],
+          totalProducts: nfe.products.length,
+          totalValue: nfe.totalValue
+        });
+      }
+    });
+    
+    return Array.from(groups.values()).sort((a, b) => {
+      // Sort by seller first, then buyer, then order number
+      if (a.seller !== b.seller) return a.seller.localeCompare(b.seller);
+      if (a.buyer !== b.buyer) return a.buyer.localeCompare(b.buyer);
+      if (a.orderNumber && b.orderNumber) return a.orderNumber.localeCompare(b.orderNumber);
+      if (a.orderNumber && !b.orderNumber) return -1;
+      if (!a.orderNumber && b.orderNumber) return 1;
+      return 0;
+    });
+  }, [filteredNFEs]);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  if (deliveryGroups.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma entrega encontrada</h3>
+        <p className="text-gray-500">Aplique filtros para ver os agrupamentos por entrega.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-gray-600 mb-4">
+        {deliveryGroups.length} entrega(s) agrupada(s)
+      </div>
+      
+      {deliveryGroups.map((group, index) => (
+        <Card key={index} className="border-l-4 border-l-blue-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                <span>Entrega #{index + 1}</span>
+                {group.orderNumber && (
+                  <Badge variant="secondary" className="ml-2">
+                    Pedido: {group.orderNumber}
+                  </Badge>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-500">
+                  {group.nfes.length} NFE(s) • {group.totalProducts} produto(s)
+                </div>
+                <div className="font-semibold text-green-600">
+                  {formatCurrency(group.totalValue)}
+                </div>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Sender Information */}
+            <div className="flex items-start space-x-3 p-3 bg-orange-50 rounded-lg">
+              <Building className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">Remetente</div>
+                <div className="text-sm text-gray-700">{group.seller}</div>
+                <div className="text-xs text-gray-500">CNPJ: {group.sellerCnpj}</div>
+              </div>
+            </div>
+
+            {/* Recipient Information */}
+            <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+              <User className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">Destinatário</div>
+                <div className="text-sm text-gray-700">{group.buyer}</div>
+                <div className="text-xs text-gray-500">
+                  {group.buyerDoc.length === 11 ? 'CPF' : 'CNPJ'}: {group.buyerDoc}
+                </div>
+              </div>
+            </div>
+
+            {/* NFEs in this group */}
+            <div className="space-y-2">
+              <div className="font-medium text-gray-900 text-sm">NFEs desta entrega:</div>
+              <div className="flex flex-wrap gap-2">
+                {group.nfes.map(nfe => (
+                  <Badge key={nfe.id} variant="outline" className="text-xs">
+                    NFE {nfe.number} • {new Date(nfe.issueDate).toLocaleDateString('pt-BR')}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+export default DeliveryGrouping;
