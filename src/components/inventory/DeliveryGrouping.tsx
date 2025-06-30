@@ -1,8 +1,9 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building, User, FileText, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building, User, FileText, Package, Printer, Eye, EyeOff } from 'lucide-react';
 import { NFEData } from '@/types/nfe';
 
 interface DeliveryGroup {
@@ -14,6 +15,14 @@ interface DeliveryGroup {
   nfes: NFEData[];
   totalProducts: number;
   totalValue: number;
+  products: Array<{
+    name: string;
+    quantity: number;
+    unit: string;
+    totalPrice: number;
+    nfeNumber: string;
+    unitPrice: number;
+  }>;
 }
 
 interface DeliveryGroupingProps {
@@ -21,6 +30,9 @@ interface DeliveryGroupingProps {
 }
 
 const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => {
+  const [showQuantities, setShowQuantities] = useState(true);
+  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+
   const deliveryGroups = useMemo(() => {
     const groups = new Map<string, DeliveryGroup>();
     
@@ -32,6 +44,18 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
         existing.nfes.push(nfe);
         existing.totalProducts += nfe.products.length;
         existing.totalValue += nfe.totalValue;
+        
+        // Add products to the group
+        nfe.products.forEach(product => {
+          existing.products.push({
+            name: product.name,
+            quantity: product.quantity,
+            unit: product.unit,
+            totalPrice: product.totalPrice,
+            nfeNumber: nfe.number,
+            unitPrice: product.unitPrice
+          });
+        });
       } else {
         groups.set(key, {
           seller: nfe.seller.name,
@@ -41,7 +65,15 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
           orderNumber: nfe.pedidoDT || null,
           nfes: [nfe],
           totalProducts: nfe.products.length,
-          totalValue: nfe.totalValue
+          totalValue: nfe.totalValue,
+          products: nfe.products.map(product => ({
+            name: product.name,
+            quantity: product.quantity,
+            unit: product.unit,
+            totalPrice: product.totalPrice,
+            nfeNumber: nfe.number,
+            unitPrice: product.unitPrice
+          }))
         });
       }
     });
@@ -64,6 +96,101 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
     }).format(value);
   };
 
+  const formatQuantity = (quantity: number, unit: string) => {
+    return `${quantity.toLocaleString('pt-BR')} ${unit}`;
+  };
+
+  const toggleGroupExpansion = (index: number) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedGroups(newExpanded);
+  };
+
+  const handlePrintDeliveries = () => {
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Relatório de Entregas</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #333; text-align: center; margin-bottom: 30px; }
+            h2 { color: #666; margin-top: 30px; margin-bottom: 15px; }
+            h3 { color: #555; margin-top: 20px; margin-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f5f5f5; font-weight: bold; }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+            .delivery-header { background-color: #f9f9f9; padding: 15px; margin: 20px 0; border-left: 4px solid #3b82f6; }
+            .date { text-align: right; margin-bottom: 20px; color: #666; }
+            .page-break { page-break-before: always; }
+            @media print {
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="date">Data: ${new Date().toLocaleDateString('pt-BR')}</div>
+          <h1>Relatório de Entregas</h1>
+          
+          ${deliveryGroups.map((group, index) => `
+            ${index > 0 ? '<div class="page-break"></div>' : ''}
+            <div class="delivery-header">
+              <h2>Entrega #${index + 1} ${group.orderNumber ? `- Pedido: ${group.orderNumber}` : ''}</h2>
+              <p><strong>Remetente:</strong> ${group.seller} (CNPJ: ${group.sellerCnpj})</p>
+              <p><strong>Destinatário:</strong> ${group.buyer} (${group.buyerDoc.length === 11 ? 'CPF' : 'CNPJ'}: ${group.buyerDoc})</p>
+              <p><strong>NFEs:</strong> ${group.nfes.map(nfe => `${nfe.number}`).join(', ')}</p>
+              <p><strong>Total:</strong> ${formatCurrency(group.totalValue)}</p>
+            </div>
+            
+            <h3>Produtos desta Entrega:</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>NFE</th>
+                  ${showQuantities ? '<th class="text-right">Quantidade</th>' : '<th class="text-center">Quantidade</th>'}
+                  <th class="text-right">Valor Unit.</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${group.products.map(product => `
+                  <tr>
+                    <td>${product.name}</td>
+                    <td>${product.nfeNumber}</td>
+                    <td class="${showQuantities ? 'text-right' : 'text-center'}">${showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}</td>
+                    <td class="text-right">${formatCurrency(product.unitPrice)}</td>
+                    <td class="text-right">${formatCurrency(product.totalPrice)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `).join('')}
+          
+          <div style="margin-top: 50px; font-size: 12px; color: #666;">
+            <p>Total de entregas: ${deliveryGroups.length}</p>
+            <p>Relatório gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
+  };
+
   if (deliveryGroups.length === 0) {
     return (
       <div className="text-center py-12">
@@ -76,8 +203,30 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-gray-600 mb-4">
-        {deliveryGroups.length} entrega(s) agrupada(s)
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-600">
+          {deliveryGroups.length} entrega(s) agrupada(s)
+        </div>
+        
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowQuantities(!showQuantities)}
+            className="flex items-center space-x-2"
+          >
+            {showQuantities ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            <span>{showQuantities ? 'Ocultar Qtd.' : 'Mostrar Qtd.'}</span>
+          </Button>
+          
+          <Button
+            onClick={handlePrintDeliveries}
+            className="flex items-center space-x-2"
+          >
+            <Printer className="h-4 w-4" />
+            <span>Imprimir Entregas</span>
+          </Button>
+        </div>
       </div>
       
       {deliveryGroups.map((group, index) => (
@@ -136,6 +285,58 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                   </Badge>
                 ))}
               </div>
+            </div>
+
+            {/* Products Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="font-medium text-gray-900 text-sm">
+                  Produtos ({group.products.length}):
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleGroupExpansion(index)}
+                  className="text-xs"
+                >
+                  {expandedGroups.has(index) ? 'Ocultar' : 'Mostrar'} Produtos
+                </Button>
+              </div>
+              
+              {expandedGroups.has(index) && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2">Produto</th>
+                          <th className="text-center py-2">NFE</th>
+                          <th className="text-right py-2">Quantidade</th>
+                          <th className="text-right py-2">Valor Unit.</th>
+                          <th className="text-right py-2">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.products.map((product, productIndex) => (
+                          <tr key={productIndex} className="border-b border-gray-200">
+                            <td className="py-2 text-gray-900">{product.name}</td>
+                            <td className="py-2 text-center text-gray-600">{product.nfeNumber}</td>
+                            <td className="py-2 text-right text-gray-900">
+                              {showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}
+                            </td>
+                            <td className="py-2 text-right text-gray-900">
+                              {formatCurrency(product.unitPrice)}
+                            </td>
+                            <td className="py-2 text-right text-gray-900 font-medium">
+                              {formatCurrency(product.totalPrice)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
