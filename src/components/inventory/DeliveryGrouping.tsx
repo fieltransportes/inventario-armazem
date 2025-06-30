@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -129,6 +128,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
             .delivery-header { background-color: #f9f9f9; padding: 15px; margin: 20px 0; border-left: 4px solid #3b82f6; }
             .date { text-align: right; margin-bottom: 20px; color: #666; }
             .page-break { page-break-before: always; }
+            .blank-space { width: 80px; border-bottom: 1px solid #333; display: inline-block; }
             @media print {
               .no-print { display: none; }
             }
@@ -145,7 +145,6 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
               <p><strong>Remetente:</strong> ${group.seller} (CNPJ: ${group.sellerCnpj})</p>
               <p><strong>Destinatário:</strong> ${group.buyer} (${group.buyerDoc.length === 11 ? 'CPF' : 'CNPJ'}: ${group.buyerDoc})</p>
               <p><strong>NFEs:</strong> ${group.nfes.map(nfe => `${nfe.number}`).join(', ')}</p>
-              <p><strong>Total:</strong> ${formatCurrency(group.totalValue)}</p>
             </div>
             
             <h3>Produtos desta Entrega:</h3>
@@ -155,8 +154,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                   <th>Produto</th>
                   <th>NFE</th>
                   ${showQuantities ? '<th class="text-right">Quantidade</th>' : '<th class="text-center">Quantidade</th>'}
-                  <th class="text-right">Valor Unit.</th>
-                  <th class="text-right">Total</th>
+                  <th class="text-center">Ocorrência</th>
                 </tr>
               </thead>
               <tbody>
@@ -165,8 +163,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                     <td>${product.name}</td>
                     <td>${product.nfeNumber}</td>
                     <td class="${showQuantities ? 'text-right' : 'text-center'}">${showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}</td>
-                    <td class="text-right">${formatCurrency(product.unitPrice)}</td>
-                    <td class="text-right">${formatCurrency(product.totalPrice)}</td>
+                    <td class="text-center"><span class="blank-space"></span></td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -312,8 +309,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                           <th className="text-left py-2">Produto</th>
                           <th className="text-center py-2">NFE</th>
                           <th className="text-right py-2">Quantidade</th>
-                          <th className="text-right py-2">Valor Unit.</th>
-                          <th className="text-right py-2">Total</th>
+                          <th className="text-center py-2">Ocorrência</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -324,11 +320,8 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                             <td className="py-2 text-right text-gray-900">
                               {showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}
                             </td>
-                            <td className="py-2 text-right text-gray-900">
-                              {formatCurrency(product.unitPrice)}
-                            </td>
-                            <td className="py-2 text-right text-gray-900 font-medium">
-                              {formatCurrency(product.totalPrice)}
+                            <td className="py-2 text-center">
+                              <div className="w-16 h-6 border-b border-gray-400 mx-auto"></div>
                             </td>
                           </tr>
                         ))}
