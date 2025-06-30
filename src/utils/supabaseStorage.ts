@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { NFEData, NFESeller, NFEBuyer, NFEProduct } from '@/types/nfe';
+import { Json } from '@/integrations/supabase/types';
 
 export const saveNFEToSupabase = async (nfeData: NFEData): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
