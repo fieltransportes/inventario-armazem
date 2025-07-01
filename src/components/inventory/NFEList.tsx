@@ -11,6 +11,12 @@ interface NFEListProps {
 }
 
 const NFEList: React.FC<NFEListProps> = ({ nfes }) => {
+  // Helper function to remove leading zeros
+  const removeLeadingZeros = (value: string): string => {
+    if (!value) return value;
+    return value.replace(/^0+/, '') || '0';
+  };
+
   const formatQuantity = (quantity: number, unit: string) => {
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
   };
@@ -27,7 +33,7 @@ const NFEList: React.FC<NFEListProps> = ({ nfes }) => {
                   <div className="flex items-center space-x-1 bg-orange-100 px-2 py-1 rounded-full">
                     <FileText className="h-3 w-3 text-orange-600" />
                     <span className="text-xs font-medium text-orange-800">
-                      Pedido/DT: {nfe.pedidoDT}
+                      Pedido/DT: {removeLeadingZeros(nfe.pedidoDT)}
                     </span>
                   </div>
                 )}
@@ -44,7 +50,7 @@ const NFEList: React.FC<NFEListProps> = ({ nfes }) => {
               <div>
                 <p><strong>Chave:</strong> {nfe.chNFe.substring(0, 8)}...{nfe.chNFe.substring(-8)}</p>
                 {nfe.pedidoDT && (
-                  <p><strong>Pedido/DT:</strong> {nfe.pedidoDT}</p>
+                  <p><strong>Pedido/DT:</strong> {removeLeadingZeros(nfe.pedidoDT)}</p>
                 )}
               </div>
             </div>

@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +33,12 @@ interface DeliveryGroupingProps {
 const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => {
   const [showQuantities, setShowQuantities] = useState(true);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+
+  // Helper function to remove leading zeros
+  const removeLeadingZeros = (value: string): string => {
+    if (!value) return value;
+    return value.replace(/^0+/, '') || '0';
+  };
 
   const deliveryGroups = useMemo(() => {
     const groups = new Map<string, DeliveryGroup>();
@@ -228,7 +235,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
           ${deliveryGroups.map((group, index) => `
             ${index > 0 ? '<div class="page-break"></div>' : ''}
             <div class="delivery-header">
-              <p><strong>Entrega #${index + 1}${group.orderNumber ? ` - Pedido: ${group.orderNumber}` : ''}</strong></p>
+              <p><strong>Entrega #${index + 1}${group.orderNumber ? ` - Pedido: ${removeLeadingZeros(group.orderNumber)}` : ''}</strong></p>
               <p><strong>Remetente:</strong> ${group.seller} (${group.sellerCnpj})</p>
               <p><strong>Destinatário:</strong> ${group.buyer} (${group.buyerDoc.length === 11 ? 'CPF' : 'CNPJ'}: ${group.buyerDoc})</p>
               <p><strong>NFEs:</strong> ${group.nfes.map(nfe => `${nfe.number}`).join(', ')} | <strong>Produtos:</strong> ${group.products.length}</p>
@@ -247,7 +254,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
               <tbody>
                 ${group.products.map(product => `
                   <tr class="compact-row">
-                    <td class="product-code">${product.id}</td>
+                    <td class="product-code">${removeLeadingZeros(product.id)}</td>
                     <td class="product-name">${product.name}</td>
                     <td class="text-center">${product.nfeNumber}</td>
                     <td class="${showQuantities ? 'text-right' : 'text-center'}">${showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}</td>
@@ -322,7 +329,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                 <span>Entrega #{index + 1}</span>
                 {group.orderNumber && (
                   <Badge variant="secondary" className="ml-2">
-                    Pedido: {group.orderNumber}
+                    Pedido: {removeLeadingZeros(group.orderNumber)}
                   </Badge>
                 )}
               </div>
@@ -403,7 +410,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                       <tbody>
                         {group.products.map((product, productIndex) => (
                           <tr key={productIndex} className="border-b border-gray-200">
-                            <td className="py-2 text-gray-600 font-mono text-xs">{product.id}</td>
+                            <td className="py-2 text-gray-600 font-mono text-xs">{removeLeadingZeros(product.id)}</td>
                             <td className="py-2 text-gray-900">{product.name}</td>
                             <td className="py-2 text-center text-gray-600">{product.nfeNumber}</td>
                             <td className="py-2 text-right text-gray-900">

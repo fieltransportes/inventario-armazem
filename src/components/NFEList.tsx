@@ -31,6 +31,12 @@ const NFEList: React.FC<NFEListProps> = ({
   const [newPedidoDT, setNewPedidoDT] = useState('');
   const { toast } = useToast();
 
+  // Helper function to remove leading zeros
+  const removeLeadingZeros = (value: string): string => {
+    if (!value) return value;
+    return value.replace(/^0+/, '') || '0';
+  };
+
   const filteredData = nfeData.filter(nfe =>
     nfe.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     nfe.seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -277,7 +283,7 @@ const NFEList: React.FC<NFEListProps> = ({
                           <div className="flex items-center">
                             <FileText className="h-3 w-3 mr-1 text-blue-500" />
                             <span className="text-sm font-medium text-blue-900">
-                              {nfe.pedidoDT}
+                              {removeLeadingZeros(nfe.pedidoDT)}
                             </span>
                           </div>
                         ) : (
