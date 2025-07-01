@@ -1,4 +1,3 @@
-
 import { NFEData, NFEProduct, NFESeller, NFEBuyer } from '../types/nfe';
 import { extractOrderNumber } from './supplierConfig';
 
@@ -91,8 +90,9 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
     const detElements = xmlDoc.querySelectorAll('det');
     const products: NFEProduct[] = Array.from(detElements).map((det, index) => {
       const prodElement = det.querySelector('prod');
+      const productCode = getTextContent('cProd', prodElement); // Extrai o código do produto da tag <cProd>
       return {
-        id: `${nfeNumber}-${index + 1}`,
+        id: productCode || `${nfeNumber}-${index + 1}`, // Usa cProd como ID, fallback para o antigo formato
         name: getTextContent('xProd', prodElement),
         quantity: getNumber('qCom', prodElement),
         unitPrice: getNumber('vUnCom', prodElement),
