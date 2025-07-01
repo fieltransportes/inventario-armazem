@@ -22,6 +22,7 @@ interface DeliveryGroup {
     totalPrice: number;
     nfeNumber: string;
     unitPrice: number;
+    id: string; // Product code/ID
   }>;
 }
 
@@ -53,7 +54,8 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
             unit: product.unit,
             totalPrice: product.totalPrice,
             nfeNumber: nfe.number,
-            unitPrice: product.unitPrice
+            unitPrice: product.unitPrice,
+            id: product.id
           });
         });
       } else {
@@ -72,7 +74,8 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
             unit: product.unit,
             totalPrice: product.totalPrice,
             nfeNumber: nfe.number,
-            unitPrice: product.unitPrice
+            unitPrice: product.unitPrice,
+            id: product.id
           }))
         });
       }
@@ -119,97 +122,102 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
           <style>
             body { 
               font-family: Arial, sans-serif; 
-              margin: 10px; 
-              font-size: 12px;
-              line-height: 1.2;
+              margin: 15px; 
+              font-size: 14px;
+              line-height: 1.4;
             }
             h1 { 
               color: #333; 
               text-align: center; 
-              margin-bottom: 15px; 
-              font-size: 18px;
+              margin-bottom: 20px; 
+              font-size: 22px;
               font-weight: bold;
             }
             h2 { 
               color: #666; 
-              margin: 15px 0 8px 0; 
-              font-size: 14px;
+              margin: 20px 0 12px 0; 
+              font-size: 16px;
               font-weight: bold;
             }
             h3 { 
               color: #555; 
-              margin: 10px 0 5px 0; 
-              font-size: 13px;
+              margin: 15px 0 8px 0; 
+              font-size: 15px;
               font-weight: bold;
             }
             table { 
               width: 100%; 
               border-collapse: collapse; 
-              margin: 8px 0; 
-              font-size: 11px;
+              margin: 12px 0; 
+              font-size: 13px;
             }
             th, td { 
               border: 1px solid #ddd; 
-              padding: 4px 6px; 
+              padding: 6px 8px; 
               text-align: left; 
               vertical-align: top;
             }
             th { 
               background-color: #f5f5f5; 
               font-weight: bold; 
-              font-size: 10px;
+              font-size: 12px;
               text-transform: uppercase;
             }
             .text-right { text-align: right; }
             .text-center { text-align: center; }
             .delivery-header { 
               background-color: #f9f9f9; 
-              padding: 8px 12px; 
-              margin: 12px 0 8px 0; 
-              border-left: 3px solid #3b82f6;
-              font-size: 11px;
+              padding: 12px 16px; 
+              margin: 15px 0 12px 0; 
+              border-left: 4px solid #3b82f6;
+              font-size: 13px;
             }
             .delivery-header p {
-              margin: 2px 0;
-              line-height: 1.1;
+              margin: 3px 0;
+              line-height: 1.3;
             }
             .delivery-header strong {
               font-weight: bold;
             }
             .date { 
               text-align: right; 
-              margin-bottom: 10px; 
+              margin-bottom: 15px; 
               color: #666; 
-              font-size: 10px;
+              font-size: 12px;
             }
             .page-break { 
               page-break-before: always; 
             }
             .blank-space { 
-              width: 60px; 
+              width: 80px; 
               border-bottom: 1px solid #333; 
               display: inline-block; 
-              height: 12px;
+              height: 16px;
             }
             .compact-row td {
-              padding: 2px 4px;
-              font-size: 10px;
+              padding: 4px 6px;
+              font-size: 12px;
             }
             .product-name {
-              max-width: 200px;
+              max-width: 250px;
               word-wrap: break-word;
-              font-size: 10px;
+              font-size: 12px;
+            }
+            .product-code {
+              font-family: monospace;
+              font-size: 11px;
+              color: #666;
             }
             .footer-info {
-              margin-top: 20px; 
-              font-size: 10px; 
+              margin-top: 25px; 
+              font-size: 12px; 
               color: #666;
               border-top: 1px solid #ddd;
-              padding-top: 8px;
+              padding-top: 12px;
             }
             @media print {
               .no-print { display: none; }
-              body { margin: 5px; }
+              body { margin: 10px; }
               .page-break { page-break-before: always; }
             }
           </style>
@@ -230,15 +238,17 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
             <table>
               <thead>
                 <tr>
-                  <th style="width: 45%;">Produto</th>
-                  <th style="width: 15%;" class="text-center">NFE</th>
-                  <th style="width: 20%;" class="${showQuantities ? 'text-right' : 'text-center'}">Quantidade</th>
-                  <th style="width: 20%;" class="text-center">Ocorrência</th>
+                  <th style="width: 15%;">Código</th>
+                  <th style="width: 40%;">Produto</th>
+                  <th style="width: 12%;" class="text-center">NFE</th>
+                  <th style="width: 18%;" class="${showQuantities ? 'text-right' : 'text-center'}">Quantidade</th>
+                  <th style="width: 15%;" class="text-center">Ocorrência</th>
                 </tr>
               </thead>
               <tbody>
                 ${group.products.map(product => `
                   <tr class="compact-row">
+                    <td class="product-code">${product.id}</td>
                     <td class="product-name">${product.name}</td>
                     <td class="text-center">${product.nfeNumber}</td>
                     <td class="${showQuantities ? 'text-right' : 'text-center'}">${showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}</td>
@@ -384,6 +394,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
+                          <th className="text-left py-2">Código</th>
                           <th className="text-left py-2">Produto</th>
                           <th className="text-center py-2">NFE</th>
                           <th className="text-right py-2">Quantidade</th>
@@ -393,6 +404,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                       <tbody>
                         {group.products.map((product, productIndex) => (
                           <tr key={productIndex} className="border-b border-gray-200">
+                            <td className="py-2 text-gray-600 font-mono text-xs">{product.id}</td>
                             <td className="py-2 text-gray-900">{product.name}</td>
                             <td className="py-2 text-center text-gray-600">{product.nfeNumber}</td>
                             <td className="py-2 text-right text-gray-900">
