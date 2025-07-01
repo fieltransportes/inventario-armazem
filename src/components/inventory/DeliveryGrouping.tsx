@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +54,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
             totalPrice: product.totalPrice,
             nfeNumber: nfe.number,
             unitPrice: product.unitPrice,
-            id: product.id
+            id: product.id // Este é o código da tag cProd
           });
         });
       } else {
@@ -75,7 +74,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
             totalPrice: product.totalPrice,
             nfeNumber: nfe.number,
             unitPrice: product.unitPrice,
-            id: product.id
+            id: product.id // Este é o código da tag cProd
           }))
         });
       }
