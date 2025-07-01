@@ -80,6 +80,35 @@ const Upload: React.FC = () => {
     }
   };
 
+  const handleBulkDeleteNFEs = async (nfes: NFEData[]) => {
+    try {
+      for (const nfe of nfes) {
+        await deleteNFEData(nfe.chNFe);
+      }
+      await loadNFEData(); // Reload data after deletion
+    } catch (error) {
+      console.error('Erro ao deletar NFEs:', error);
+      throw error; // Re-throw para que o componente NFEList possa tratar
+    }
+  };
+
+  const handleUpdatePedidoDT = async (nfe: NFEData, newPedidoDT: string) => {
+    try {
+      // Atualizar a NFE no Supabase com o novo pedidoDT
+      const updatedNFE = { ...nfe, pedidoDT: newPedidoDT };
+      
+      // Assumindo que temos uma função para atualizar no storage
+      // Por enquanto, vamos simular a atualização
+      const updatedAllNFEs = allNFEs.map(existingNFE => 
+        existingNFE.id === nfe.id ? updatedNFE : existingNFE
+      );
+      setAllNFEs(updatedAllNFEs);
+    } catch (error) {
+      console.error('Erro ao atualizar pedido/DT:', error);
+      throw error;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -127,6 +156,8 @@ const Upload: React.FC = () => {
                 onRefresh={loadNFEData}
                 onViewDetails={handleViewDetails}
                 onDelete={handleDeleteNFE}
+                onBulkDelete={handleBulkDeleteNFEs}
+                onUpdatePedidoDT={handleUpdatePedidoDT}
               />
             )}
           </div>
