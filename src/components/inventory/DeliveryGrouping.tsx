@@ -178,6 +178,10 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
               border-left: 4px solid #3b82f6;
               font-size: 13px;
             }
+            .delivery-group {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
             .delivery-header p {
               margin: 3px 0;
               line-height: 1.3;
@@ -233,35 +237,37 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
           <h1>Relatório de Entregas</h1>
           
           ${deliveryGroups.map((group, index) => `
-            <div class="delivery-header">
-              <p><strong>Entrega #${index + 1}${group.orderNumber ? ` - Pedido: ${removeLeadingZeros(group.orderNumber)}` : ''}</strong></p>
-              <p><strong>Remetente:</strong> ${group.seller} (${group.sellerCnpj})</p>
-              <p><strong>Destinatário:</strong> ${group.buyer} (${group.buyerDoc.length === 11 ? 'CPF' : 'CNPJ'}: ${group.buyerDoc})</p>
-              <p><strong>NFEs:</strong> ${group.nfes.map(nfe => `${nfe.number}`).join(', ')} | <strong>Produtos:</strong> ${group.products.length}</p>
-            </div>
-            
-            <table>
-              <thead>
-                <tr>
-                  <th style="width: 15%;">Código</th>
-                  <th style="width: 40%;">Produto</th>
-                  <th style="width: 12%;" class="text-center">NFE</th>
-                  <th style="width: 18%;" class="${showQuantities ? 'text-right' : 'text-center'}">Quantidade</th>
-                  <th style="width: 15%;" class="text-center">Ocorrência</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${group.products.map(product => `
-                  <tr class="compact-row">
-                    <td class="product-code">${removeLeadingZeros(product.id)}</td>
-                    <td class="product-name">${product.name}</td>
-                    <td class="text-center">${product.nfeNumber}</td>
-                    <td class="${showQuantities ? 'text-right' : 'text-center'}">${showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}</td>
-                    <td class="text-center"><span class="blank-space"></span></td>
+            <div class="delivery-group">
+              <div class="delivery-header">
+                <p><strong>Entrega #${index + 1}${group.orderNumber ? ` - Pedido: ${removeLeadingZeros(group.orderNumber)}` : ''}</strong></p>
+                <p><strong>Remetente:</strong> ${group.seller} (${group.sellerCnpj})</p>
+                <p><strong>Destinatário:</strong> ${group.buyer} (${group.buyerDoc.length === 11 ? 'CPF' : 'CNPJ'}: ${group.buyerDoc})</p>
+                <p><strong>NFEs:</strong> ${group.nfes.map(nfe => `${nfe.number}`).join(', ')} | <strong>Produtos:</strong> ${group.products.length}</p>
+              </div>
+              
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 15%;">Código</th>
+                    <th style="width: 40%;">Produto</th>
+                    <th style="width: 12%;" class="text-center">NFE</th>
+                    <th style="width: 18%;" class="${showQuantities ? 'text-right' : 'text-center'}">Quantidade</th>
+                    <th style="width: 15%;" class="text-center">Ocorrência</th>
                   </tr>
-                `).join('')}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  ${group.products.map(product => `
+                    <tr class="compact-row">
+                      <td class="product-code">${removeLeadingZeros(product.id)}</td>
+                      <td class="product-name">${product.name}</td>
+                      <td class="text-center">${product.nfeNumber}</td>
+                      <td class="${showQuantities ? 'text-right' : 'text-center'}">${showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}</td>
+                      <td class="text-center"><span class="blank-space"></span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
           `).join('')}
           
           <div class="footer-info">
