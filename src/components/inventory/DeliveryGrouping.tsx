@@ -233,7 +233,6 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
           <h1>Relatório de Entregas</h1>
           
           ${deliveryGroups.map((group, index) => `
-            ${index > 0 ? '<div class="page-break"></div>' : ''}
             <div class="delivery-header">
               <p><strong>Entrega #${index + 1}${group.orderNumber ? ` - Pedido: ${removeLeadingZeros(group.orderNumber)}` : ''}</strong></p>
               <p><strong>Remetente:</strong> ${group.seller} (${group.sellerCnpj})</p>
