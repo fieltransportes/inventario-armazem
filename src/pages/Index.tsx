@@ -2,9 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Upload, FileText, BarChart3 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Package, Upload, FileText, BarChart3, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
+import SupplierConfig from '@/components/SupplierConfig';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -73,29 +75,55 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          {features.map((feature, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+        <Tabs defaultValue="main" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="main">Principal</TabsTrigger>
+            <TabsTrigger value="import">Importação XML</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="main" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              {features.map((feature, index) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-3">
+                      <feature.icon className="h-8 w-8 text-blue-600" />
+                      <span>{feature.title}</span>
+                    </CardTitle>
+                    <CardDescription>
+                      {feature.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={feature.action}
+                      className="w-full"
+                    >
+                      {feature.actionText}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="import" className="space-y-6">
+            <Card className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-3">
-                  <feature.icon className="h-8 w-8 text-blue-600" />
-                  <span>{feature.title}</span>
+                  <Settings className="h-8 w-8 text-blue-600" />
+                  <span>Configurações</span>
                 </CardTitle>
                 <CardDescription>
-                  {feature.description}
+                  Configure como o sistema deve processar suas NFEs
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button 
-                  onClick={feature.action}
-                  className="w-full"
-                >
-                  {feature.actionText}
-                </Button>
+                <SupplierConfig />
               </CardContent>
             </Card>
-          ))}
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

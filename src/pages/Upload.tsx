@@ -10,7 +10,6 @@ import Navbar from '@/components/Navbar';
 import FileUpload from '@/components/FileUpload';
 import NFEList from '@/components/NFEList';
 import NFEDetails from '@/components/NFEDetails';
-import SupplierConfig from '@/components/SupplierConfig';
 
 const Upload: React.FC = () => {
   const navigate = useNavigate();
@@ -142,9 +141,6 @@ const Upload: React.FC = () => {
             
             <FileUpload onUploadSuccess={handleUploadSuccess} />
           </div>
-
-          {/* Configurador de Padrão Pedido/DT */}
-          <SupplierConfig />
 
           {/* Lista de NFEs Importadas */}
           <div className="bg-white rounded-lg p-6 shadow-sm border">
