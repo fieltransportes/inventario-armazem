@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +20,7 @@ const SupplierConfig: React.FC = () => {
   const [formData, setFormData] = useState({
     cnpj: '',
     supplierName: '',
+    sourceTag: 'infCpl',
     extractionPattern: '',
     description: ''
   });
@@ -34,10 +36,10 @@ const SupplierConfig: React.FC = () => {
   };
 
   const handleSave = () => {
-    if (!formData.supplierName || !formData.extractionPattern) {
+    if (!formData.supplierName || !formData.extractionPattern || !formData.sourceTag) {
       toast({
         title: "Campos obrigatórios",
-        description: "Nome do fornecedor e padrão de extração são obrigatórios.",
+        description: "Nome do fornecedor, tag de origem e padrão de extração são obrigatórios.",
         variant: "destructive",
       });
       return;
@@ -50,6 +52,7 @@ const SupplierConfig: React.FC = () => {
       const config: SupplierOrderConfig = {
         cnpj: formData.cnpj.trim(),
         supplierName: formData.supplierName.trim(),
+        sourceTag: formData.sourceTag.trim(),
         extractionPattern: formData.extractionPattern.trim(),
         description: formData.description.trim()
       };
@@ -77,6 +80,7 @@ const SupplierConfig: React.FC = () => {
     setFormData({
       cnpj: config.cnpj,
       supplierName: config.supplierName,
+      sourceTag: config.sourceTag,
       extractionPattern: config.extractionPattern,
       description: config.description
     });
@@ -98,6 +102,7 @@ const SupplierConfig: React.FC = () => {
     setFormData({
       cnpj: '',
       supplierName: '',
+      sourceTag: 'infCpl',
       extractionPattern: '',
       description: ''
     });
@@ -172,6 +177,25 @@ const SupplierConfig: React.FC = () => {
               </div>
               
               <div>
+                <Label htmlFor="sourceTag">TAG de Origem *</Label>
+                <Select value={formData.sourceTag} onValueChange={(value) => setFormData(prev => ({ ...prev, sourceTag: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a TAG" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="infCpl">infCpl - Informações Complementares</SelectItem>
+                    <SelectItem value="xPed">xPed - Número do Pedido</SelectItem>
+                    <SelectItem value="infAdFisco">infAdFisco - Informações Adicionais do Fisco</SelectItem>
+                    <SelectItem value="infAdic">infAdic - Informações Adicionais</SelectItem>
+                    <SelectItem value="obs">obs - Observações</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Selecione em qual campo XML buscar o número do pedido/DT
+                </p>
+              </div>
+              
+              <div>
                 <Label htmlFor="extractionPattern">Padrão de Extração *</Label>
                 <Input
                   id="extractionPattern"
@@ -214,6 +238,7 @@ const SupplierConfig: React.FC = () => {
             <TableRow>
               <TableHead>Fornecedor</TableHead>
               <TableHead>CNPJ</TableHead>
+              <TableHead>TAG</TableHead>
               <TableHead>Padrão</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead className="w-20">Ações</TableHead>
@@ -229,6 +254,9 @@ const SupplierConfig: React.FC = () => {
                   ) : (
                     <Badge variant="secondary">Padrão</Badge>
                   )}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{config.sourceTag}</Badge>
                 </TableCell>
                 <TableCell className="font-mono text-sm max-w-40 truncate">
                   {config.extractionPattern}
@@ -261,12 +289,12 @@ const SupplierConfig: React.FC = () => {
       )}
 
       <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h4 className="font-medium text-blue-900 mb-2">Exemplos de Padrões:</h4>
+        <h4 className="font-medium text-blue-900 mb-2">Exemplos por TAG:</h4>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li><code>Ordem de Frete:\s*(\d+)</code> - Extrai número após "Ordem de Frete:"</li>
-          <li><code>Pedido:\s*(\d+)</code> - Extrai número após "Pedido:"</li>
-          <li><code>DT\s*(\d+)</code> - Extrai número após "DT"</li>
-          <li><code>(\d+)</code> - Extrai qualquer sequência de números</li>
+          <li><strong>infCpl:</strong> <code>Ordem de Frete:\s*(\d+)</code> - Extrai após "Ordem de Frete:"</li>
+          <li><strong>xPed:</strong> <code>(\d+)</code> - Extrai todo o conteúdo se for só números</li>
+          <li><strong>infAdFisco:</strong> <code>DT\s*(\d+)</code> - Extrai após "DT"</li>
+          <li><strong>obs:</strong> <code>Pedido:\s*(\d+)</code> - Extrai após "Pedido:"</li>
         </ul>
       </div>
     </div>

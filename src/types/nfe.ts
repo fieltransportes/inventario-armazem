@@ -66,6 +66,7 @@ export interface NFEData {
 export interface SupplierOrderConfig {
   cnpj: string;
   supplierName: string;
+  sourceTag: string; // TAG XML onde buscar o pedido (ex: infCpl, xPed, etc)
   extractionPattern: string; // Padrão regex ou texto para extrair o pedido
   description: string; // Descrição do padrão para o usuário
 }

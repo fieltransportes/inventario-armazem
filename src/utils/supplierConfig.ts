@@ -8,6 +8,7 @@ const DEFAULT_CONFIGS: SupplierOrderConfig[] = [
   {
     cnpj: '',
     supplierName: 'Padrão Geral',
+    sourceTag: 'infCpl',
     extractionPattern: 'Ordem de Frete:\\s*(\\d+)',
     description: 'Extrai número após "Ordem de Frete:"'
   }
@@ -48,7 +49,7 @@ export const removeSupplierConfig = (cnpj: string): void => {
   saveSupplierConfigs(filteredConfigs);
 };
 
-export const extractOrderNumber = (infCpl: string, supplierCnpj: string): string | null => {
+export const extractOrderNumber = (xmlData: any, supplierCnpj: string): string | null => {
   const configs = getSupplierConfigs();
   
   // Procura configuração específica para o fornecedor
@@ -64,8 +65,14 @@ export const extractOrderNumber = (infCpl: string, supplierCnpj: string): string
   }
   
   try {
+    // Busca o valor na tag especificada
+    const tagValue = xmlData[config.sourceTag];
+    if (!tagValue) {
+      return null;
+    }
+    
     const regex = new RegExp(config.extractionPattern, 'i');
-    const match = infCpl.match(regex);
+    const match = tagValue.match(regex);
     return match ? match[1] : null;
   } catch (error) {
     console.error('Error applying extraction pattern:', error);
