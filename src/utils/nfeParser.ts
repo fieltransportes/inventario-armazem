@@ -114,11 +114,18 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
       cofins: getNumber('vCOFINS', totalElement),
     };
 
-    // Extract pedido/DT from infCpl
-    const infCpl = getTextContent('infCpl');
-    const pedidoDT = infCpl ? extractOrderNumber(infCpl, seller.cnpj) : null;
+    // Extract pedido/DT from configured tags
+    const xmlData = {
+      infCpl: getTextContent('infCpl'),
+      xPed: getTextContent('xPed'),
+      infAdFisco: getTextContent('infAdFisco'),
+      infAdic: getTextContent('infAdic'),
+      obs: getTextContent('obs')
+    };
     
-    console.log('Extracted infCpl:', infCpl);
+    const pedidoDT = extractOrderNumber(xmlData, seller.cnpj);
+    
+    console.log('Extracted xmlData:', xmlData);
     console.log('Extracted pedidoDT:', pedidoDT);
 
     const nfeData: NFEData = {

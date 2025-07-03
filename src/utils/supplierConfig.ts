@@ -32,7 +32,9 @@ export const saveSupplierConfigs = (configs: SupplierOrderConfig[]): void => {
 
 export const addSupplierConfig = (config: SupplierOrderConfig): void => {
   const configs = getSupplierConfigs();
-  const existingIndex = configs.findIndex(c => c.cnpj === config.cnpj);
+  const existingIndex = configs.findIndex(c => 
+    c.cnpj === config.cnpj && c.supplierName === config.supplierName
+  );
   
   if (existingIndex >= 0) {
     configs[existingIndex] = config;
