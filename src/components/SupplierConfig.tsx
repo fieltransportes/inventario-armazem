@@ -125,19 +125,18 @@ const SupplierConfig: React.FC = () => {
         <p className="text-sm text-gray-600">
           {configs.length} configuração(ões) cadastrada(s)
         </p>
+        <Button 
+          className="flex items-center space-x-2"
+          onClick={() => {
+            console.log('Nova configuração button clicked');
+            setIsDialogOpen(true);
+          }}
+        >
+          <Plus className="h-4 w-4" />
+          <span>Nova Configuração</span>
+        </Button>
+        
         <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
-          <DialogTrigger asChild>
-            <Button 
-              className="flex items-center space-x-2"
-              onClick={() => {
-                console.log('Nova configuração button clicked');
-                setIsDialogOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              <span>Nova Configuração</span>
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>
