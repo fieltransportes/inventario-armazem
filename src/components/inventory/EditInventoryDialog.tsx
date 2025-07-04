@@ -180,11 +180,19 @@ const EditInventoryDialog: React.FC<EditInventoryDialogProps> = ({
   };
 
   const regenerateInventoryItems = async () => {
+    console.log('Regenerating inventory items for inventory:', inventory.id);
+    console.log('Current NFEs count:', currentNFEs.length);
+    
     // Delete existing items
-    await supabase
+    const { error: deleteError } = await supabase
       .from('inventory_items')
       .delete()
       .eq('inventory_id', inventory.id);
+
+    if (deleteError) {
+      console.error('Error deleting existing items:', deleteError);
+      throw deleteError;
+    }
 
     // Generate new inventory summary
     const allProducts: any[] = [];
@@ -199,6 +207,8 @@ const EditInventoryDialog: React.FC<EditInventoryDialogProps> = ({
         });
       });
     });
+
+    console.log('Total products from NFEs:', allProducts.length);
 
     // Group products by name
     const summary = new Map<string, {
@@ -222,6 +232,8 @@ const EditInventoryDialog: React.FC<EditInventoryDialogProps> = ({
       }
     });
 
+    console.log('Grouped products summary:', summary.size);
+
     // Insert new items
     const inventoryItems = Array.from(summary.values()).map(item => ({
       inventory_id: inventory.id,
@@ -230,10 +242,19 @@ const EditInventoryDialog: React.FC<EditInventoryDialogProps> = ({
       unit: item.unit
     }));
 
+    console.log('Items to insert:', inventoryItems.length);
+
     if (inventoryItems.length > 0) {
-      await supabase
+      const { error: insertError } = await supabase
         .from('inventory_items')
         .insert(inventoryItems);
+      
+      if (insertError) {
+        console.error('Error inserting new items:', insertError);
+        throw insertError;
+      }
+      
+      console.log('Successfully inserted new inventory items');
     }
   };
 
