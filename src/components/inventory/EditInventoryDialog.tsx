@@ -151,8 +151,7 @@ const EditInventoryDialog: React.FC<EditInventoryDialogProps> = ({
       const { error } = await supabase
         .from('inventories')
         .update({ 
-          search_filters: newSearchFilters,
-          updated_at: new Date().toISOString()
+          search_filters: newSearchFilters
         })
         .eq('id', inventory.id);
 
