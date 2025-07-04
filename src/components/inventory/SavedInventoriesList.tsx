@@ -3,13 +3,17 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, CheckCircle, Clock, Users } from 'lucide-react';
+import { Eye, CheckCircle, Clock, Users, Edit } from 'lucide-react';
 import { useInventory } from '../../hooks/useInventory';
+import { useAuth } from '../../hooks/useAuth';
 import InventoryDetailsDialog from './InventoryDetailsDialog';
+import EditInventoryDialog from './EditInventoryDialog';
 
 const SavedInventoriesList: React.FC = () => {
-  const { savedInventories, loading } = useInventory();
+  const { savedInventories, loading, fetchSavedInventories } = useInventory();
+  const { isAdmin } = useAuth();
   const [selectedInventoryId, setSelectedInventoryId] = useState<string | null>(null);
+  const [editingInventory, setEditingInventory] = useState<any>(null);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('pt-BR');
@@ -51,14 +55,26 @@ const SavedInventoriesList: React.FC = () => {
                   <span className="text-lg font-bold">#{inventory.inventory_number}</span>
                   {getStatusBadge(inventory.status)}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedInventoryId(inventory.id)}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Ver Detalhes
-                </Button>
+                <div className="flex space-x-2">
+                  {isAdmin && inventory.status === 'open' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingInventory(inventory)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedInventoryId(inventory.id)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver Detalhes
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -89,6 +105,18 @@ const SavedInventoriesList: React.FC = () => {
           inventoryId={selectedInventoryId}
           open={!!selectedInventoryId}
           onOpenChange={(open) => !open && setSelectedInventoryId(null)}
+        />
+      )}
+
+      {editingInventory && (
+        <EditInventoryDialog
+          inventory={editingInventory}
+          open={!!editingInventory}
+          onOpenChange={(open) => !open && setEditingInventory(null)}
+          onInventoryUpdated={() => {
+            fetchSavedInventories();
+            setEditingInventory(null);
+          }}
         />
       )}
     </>
