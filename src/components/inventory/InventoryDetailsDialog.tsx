@@ -74,6 +74,28 @@ const InventoryDetailsDialog: React.FC<InventoryDetailsDialogProps> = ({
     }
   };
 
+  const handleSaveAllQuantities = async () => {
+    try {
+      // Save all quantities in parallel
+      const promises = items.map(async (item) => {
+        const quantity = parseFloat(countedQuantities[item.id] || '0');
+        if (!isNaN(quantity) && quantity >= 0) {
+          await updateCountedQuantity(item.id, quantity);
+        }
+      });
+      
+      await Promise.all(promises);
+      await loadItems(); // Refresh items
+    } catch (error) {
+      console.error('Error updating all quantities:', error);
+    }
+  };
+
+  const allQuantitiesFilled = items.every(item => 
+    countedQuantities[item.id] && 
+    !isNaN(parseFloat(countedQuantities[item.id]))
+  );
+
   const handleCompleteInventory = async () => {
     if (window.confirm('Tem certeza que deseja finalizar este inventário? Esta ação não pode ser desfeita.')) {
       try {
@@ -147,6 +169,19 @@ const InventoryDetailsDialog: React.FC<InventoryDetailsDialogProps> = ({
               <p className="text-sm text-blue-800">
                 <strong>Observações:</strong> {inventory.notes}
               </p>
+            </div>
+          )}
+
+          {inventory?.status === 'open' && items.length > 0 && (
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSaveAllQuantities}
+                disabled={!allQuantitiesFilled}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Salvar Todas as Quantidades
+              </Button>
             </div>
           )}
 
