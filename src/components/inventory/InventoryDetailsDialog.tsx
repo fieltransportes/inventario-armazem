@@ -12,12 +12,14 @@ interface InventoryDetailsDialogProps {
   inventoryId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  refreshTrigger?: number; // Add trigger to force refresh
 }
 
 const InventoryDetailsDialog: React.FC<InventoryDetailsDialogProps> = ({
   inventoryId,
   open,
-  onOpenChange
+  onOpenChange,
+  refreshTrigger
 }) => {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [countedQuantities, setCountedQuantities] = useState<{ [key: string]: string }>({});
@@ -30,7 +32,7 @@ const InventoryDetailsDialog: React.FC<InventoryDetailsDialogProps> = ({
     if (open && inventoryId) {
       loadItems();
     }
-  }, [open, inventoryId]);
+  }, [open, inventoryId, refreshTrigger]); // Add refreshTrigger to dependencies
 
   const loadItems = async () => {
     setLoading(true);

@@ -14,6 +14,7 @@ const SavedInventoriesList: React.FC = () => {
   const { isAdmin } = useAuth();
   const [selectedInventoryId, setSelectedInventoryId] = useState<string | null>(null);
   const [editingInventory, setEditingInventory] = useState<any>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('pt-BR');
@@ -105,6 +106,7 @@ const SavedInventoriesList: React.FC = () => {
           inventoryId={selectedInventoryId}
           open={!!selectedInventoryId}
           onOpenChange={(open) => !open && setSelectedInventoryId(null)}
+          refreshTrigger={refreshTrigger}
         />
       )}
 
@@ -116,6 +118,7 @@ const SavedInventoriesList: React.FC = () => {
           onInventoryUpdated={() => {
             fetchSavedInventories();
             setEditingInventory(null);
+            setRefreshTrigger(prev => prev + 1); // Trigger refresh of details dialog
           }}
         />
       )}
