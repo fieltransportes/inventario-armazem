@@ -3,14 +3,14 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, CheckCircle, Clock, Users, Edit } from 'lucide-react';
+import { Eye, CheckCircle, Clock, Users, Edit, Trash2 } from 'lucide-react';
 import { useInventory } from '../../hooks/useInventory';
 import { useAuth } from '../../hooks/useAuth';
 import InventoryDetailsDialog from './InventoryDetailsDialog';
 import EditInventoryDialog from './EditInventoryDialog';
 
 const SavedInventoriesList: React.FC = () => {
-  const { savedInventories, loading, fetchSavedInventories } = useInventory();
+  const { savedInventories, loading, fetchSavedInventories, deleteInventory } = useInventory();
   const { isAdmin } = useAuth();
   const [selectedInventoryId, setSelectedInventoryId] = useState<string | null>(null);
   const [editingInventory, setEditingInventory] = useState<any>(null);
@@ -25,6 +25,16 @@ const SavedInventoriesList: React.FC = () => {
       return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Concluído</Badge>;
     }
     return <Badge className="bg-orange-100 text-orange-800"><Clock className="h-3 w-3 mr-1" />Em Andamento</Badge>;
+  };
+
+  const handleDeleteInventory = async (inventoryId: string, inventoryNumber: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir o inventário #${inventoryNumber}? Esta ação não pode ser desfeita.`)) {
+      try {
+        await deleteInventory(inventoryId);
+      } catch (error) {
+        // Error handling is done in the hook
+      }
+    }
   };
 
   if (loading) {
@@ -58,14 +68,25 @@ const SavedInventoriesList: React.FC = () => {
                 </div>
                 <div className="flex space-x-2">
                   {isAdmin && inventory.status === 'open' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingInventory(inventory)}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingInventory(inventory)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteInventory(inventory.id, inventory.inventory_number)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir
+                      </Button>
+                    </>
                   )}
                   <Button
                     variant="outline"

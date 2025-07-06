@@ -190,6 +190,31 @@ export const useInventory = () => {
     }
   };
 
+  const deleteInventory = async (inventoryId: string) => {
+    try {
+      const { error } = await supabase
+        .from('inventories')
+        .delete()
+        .eq('id', inventoryId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Inventário excluído",
+        description: "O inventário foi excluído com sucesso.",
+      });
+
+      await fetchSavedInventories();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir inventário",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchSavedInventories();
   }, []);
@@ -201,6 +226,7 @@ export const useInventory = () => {
     fetchSavedInventories,
     fetchInventoryItems,
     updateCountedQuantity,
-    completeInventory
+    completeInventory,
+    deleteInventory
   };
 };
