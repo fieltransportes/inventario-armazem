@@ -1,18 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle, Save, AlertTriangle } from 'lucide-react';
-import { useInventory, InventoryItem } from '../../hooks/useInventory';
+import { CheckCircle, Save } from 'lucide-react';
+import { useInventory } from '../../hooks/useInventory';
+import { useInventoryItems } from '../../hooks/useInventoryItems';
+import InventoryItemsTable from './InventoryItemsTable';
 
 interface InventoryDetailsDialogProps {
   inventoryId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  refreshTrigger?: number; // Add trigger to force refresh
+  refreshTrigger?: number;
 }
 
 const InventoryDetailsDialog: React.FC<InventoryDetailsDialogProps> = ({
@@ -21,114 +21,25 @@ const InventoryDetailsDialog: React.FC<InventoryDetailsDialogProps> = ({
   onOpenChange,
   refreshTrigger
 }) => {
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [countedQuantities, setCountedQuantities] = useState<{ [key: string]: string }>({});
-  const [loading, setLoading] = useState(false);
-  const { fetchInventoryItems, updateCountedQuantity, completeInventory, savedInventories } = useInventory();
+  const { savedInventories } = useInventory();
+  const {
+    items,
+    countedQuantities,
+    loading,
+    allQuantitiesFilled,
+    handleQuantityChange,
+    handleSaveQuantity,
+    handleSaveAllQuantities,
+    handleCompleteInventory
+  } = useInventoryItems(inventoryId, open, refreshTrigger);
 
   const inventory = savedInventories.find(inv => inv.id === inventoryId);
 
-  useEffect(() => {
-    if (open && inventoryId) {
-      loadItems();
+  const onCompleteInventory = async () => {
+    const success = await handleCompleteInventory();
+    if (success) {
+      onOpenChange(false);
     }
-  }, [open, inventoryId, refreshTrigger]); // Add refreshTrigger to dependencies
-
-  const loadItems = async () => {
-    setLoading(true);
-    try {
-      const inventoryItems = await fetchInventoryItems(inventoryId);
-      setItems(inventoryItems);
-      
-      // Initialize counted quantities with existing values
-      const initialQuantities: { [key: string]: string } = {};
-      inventoryItems.forEach(item => {
-        if (item.counted_quantity !== null && item.counted_quantity !== undefined) {
-          initialQuantities[item.id] = item.counted_quantity.toString();
-        }
-      });
-      setCountedQuantities(initialQuantities);
-    } catch (error) {
-      console.error('Error loading inventory items:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleQuantityChange = (itemId: string, value: string) => {
-    setCountedQuantities(prev => ({
-      ...prev,
-      [itemId]: value
-    }));
-  };
-
-  const handleSaveQuantity = async (itemId: string) => {
-    const quantity = parseFloat(countedQuantities[itemId] || '0');
-    if (isNaN(quantity) || quantity < 0) {
-      return;
-    }
-
-    try {
-      await updateCountedQuantity(itemId, quantity);
-      await loadItems(); // Refresh items
-    } catch (error) {
-      console.error('Error updating quantity:', error);
-    }
-  };
-
-  const handleSaveAllQuantities = async () => {
-    try {
-      // Save all quantities in parallel
-      const promises = items.map(async (item) => {
-        const quantity = parseFloat(countedQuantities[item.id] || '0');
-        if (!isNaN(quantity) && quantity >= 0) {
-          await updateCountedQuantity(item.id, quantity);
-        }
-      });
-      
-      await Promise.all(promises);
-      await loadItems(); // Refresh items
-    } catch (error) {
-      console.error('Error updating all quantities:', error);
-    }
-  };
-
-  const allQuantitiesFilled = items.every(item => 
-    countedQuantities[item.id] && 
-    !isNaN(parseFloat(countedQuantities[item.id]))
-  );
-
-  const handleCompleteInventory = async () => {
-    if (window.confirm('Tem certeza que deseja finalizar este inventário? Esta ação não pode ser desfeita.')) {
-      try {
-        await completeInventory(inventoryId);
-        onOpenChange(false);
-      } catch (error) {
-        console.error('Error completing inventory:', error);
-      }
-    }
-  };
-
-  const getVarianceStatus = (expected: number, counted?: number) => {
-    if (counted === null || counted === undefined) return null;
-    
-    const variance = counted - expected;
-    if (variance === 0) return 'exact';
-    if (variance > 0) return 'surplus';
-    return 'shortage';
-  };
-
-  const getVarianceBadge = (expected: number, counted?: number) => {
-    const status = getVarianceStatus(expected, counted);
-    if (!status) return null;
-
-    if (status === 'exact') {
-      return <Badge className="bg-green-100 text-green-800">Exato</Badge>;
-    }
-    if (status === 'surplus') {
-      return <Badge className="bg-blue-100 text-blue-800">Sobra</Badge>;
-    }
-    return <Badge className="bg-red-100 text-red-800">Falta</Badge>;
   };
 
   if (loading) {
@@ -157,7 +68,7 @@ const InventoryDetailsDialog: React.FC<InventoryDetailsDialogProps> = ({
               )}
             </div>
             {inventory?.status === 'open' && (
-              <Button onClick={handleCompleteInventory} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={onCompleteInventory} className="bg-green-600 hover:bg-green-700">
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Finalizar Inventário
               </Button>
@@ -187,62 +98,13 @@ const InventoryDetailsDialog: React.FC<InventoryDetailsDialogProps> = ({
             </div>
           )}
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Produto</TableHead>
-                <TableHead className="text-right">Qtd Esperada</TableHead>
-                <TableHead className="text-center">Qtd Contada</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-center">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.product_name}</TableCell>
-                  <TableCell className="text-right">
-                    {item.expected_quantity.toLocaleString('pt-BR')} {item.unit}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={countedQuantities[item.id] || ''}
-                      onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                      placeholder="0"
-                      className="w-24 text-center"
-                      disabled={inventory?.status === 'completed'}
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {getVarianceBadge(item.expected_quantity, item.counted_quantity)}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {inventory?.status === 'open' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleSaveQuantity(item.id)}
-                        disabled={!countedQuantities[item.id]}
-                      >
-                        <Save className="h-3 w-3 mr-1" />
-                        Salvar
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {items.length === 0 && (
-            <div className="text-center py-8">
-              <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Nenhum item encontrado neste inventário.</p>
-            </div>
-          )}
+          <InventoryItemsTable
+            items={items}
+            countedQuantities={countedQuantities}
+            inventoryStatus={inventory?.status || 'open'}
+            onQuantityChange={handleQuantityChange}
+            onSaveQuantity={handleSaveQuantity}
+          />
         </div>
       </DialogContent>
     </Dialog>
