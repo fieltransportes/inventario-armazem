@@ -11,6 +11,8 @@ const XMLTagExplorer: React.FC = () => {
   const [parsedData, setParsedData] = useState<ParsedXMLData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<XMLTag | null>(null);
+  const [groupByTag, setGroupByTag] = useState(false);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -35,6 +37,14 @@ const XMLTagExplorer: React.FC = () => {
   ) || [];
 
   const uniqueTagNames = [...new Set(parsedData?.allTags.map(tag => tag.tagName) || [])];
+  
+  const groupedTags = parsedData?.allTags.reduce((acc, tag) => {
+    if (!acc[tag.tagName]) {
+      acc[tag.tagName] = [];
+    }
+    acc[tag.tagName].push(tag);
+    return acc;
+  }, {} as Record<string, XMLTag[]>) || {};
 
   return (
     <div className="space-y-4">
@@ -79,7 +89,7 @@ const XMLTagExplorer: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">Resumo</CardTitle>
@@ -99,11 +109,48 @@ const XMLTagExplorer: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-1">
-                        {uniqueTagNames.slice(0, 10).map(tagName => (
-                          <Badge key={tagName} variant="outline" className="text-xs">
-                            {tagName}
-                          </Badge>
-                        ))}
+                        {uniqueTagNames.slice(0, 10).map(tagName => {
+                          const count = groupedTags[tagName]?.length || 0;
+                          return (
+                            <Badge 
+                              key={tagName} 
+                              variant="outline" 
+                              className="text-xs cursor-pointer hover:bg-accent"
+                              onClick={() => setSearchTerm(tagName)}
+                            >
+                              {tagName} ({count})
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Filtros</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="groupByTag"
+                            checked={groupByTag}
+                            onChange={(e) => setGroupByTag(e.target.checked)}
+                            className="rounded"
+                          />
+                          <label htmlFor="groupByTag" className="text-sm">
+                            Agrupar por tag
+                          </label>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setSearchTerm('')}
+                        >
+                          Limpar Filtro
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -119,34 +166,121 @@ const XMLTagExplorer: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="max-h-96 overflow-y-auto space-y-2">
-                      {filteredTags.map((tag, index) => (
-                        <div key={index} className="p-3 border rounded-lg">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <Badge variant="secondary">{tag.tagName}</Badge>
-                            <span className="text-xs text-gray-500">{tag.path}</span>
-                          </div>
-                          {tag.content && (
-                            <p className="text-sm text-gray-700 truncate">
-                              <strong>Conteúdo:</strong> {tag.content}
-                            </p>
-                          )}
-                          {tag.attributes && Object.keys(tag.attributes).length > 0 && (
-                            <div className="mt-1">
-                              <span className="text-xs font-medium">Atributos:</span>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {Object.entries(tag.attributes).map(([key, value]) => (
-                                  <Badge key={key} variant="outline" className="text-xs">
-                                    {key}="{value}"
-                                  </Badge>
+                      {groupByTag ? (
+                        Object.entries(groupedTags)
+                          .filter(([tagName]) => 
+                            !searchTerm || 
+                            tagName.toLowerCase().includes(searchTerm.toLowerCase())
+                          )
+                          .map(([tagName, tags]) => (
+                            <div key={tagName} className="border rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <Badge variant="secondary">{tagName}</Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {tags.length} ocorrência(s)
+                                </span>
+                              </div>
+                              <div className="space-y-1 ml-4">
+                                {tags.slice(0, 3).map((tag, index) => (
+                                  <div key={index} className="text-sm">
+                                    <span className="text-xs text-muted-foreground">{tag.path}</span>
+                                    {tag.content && (
+                                      <p className="text-xs truncate">
+                                        {tag.content}
+                                      </p>
+                                    )}
+                                  </div>
                                 ))}
+                                {tags.length > 3 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    +{tags.length - 3} mais...
+                                  </p>
+                                )}
                               </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                          ))
+                      ) : (
+                        filteredTags.map((tag, index) => (
+                          <div 
+                            key={index} 
+                            className="p-3 border rounded-lg cursor-pointer hover:bg-accent"
+                            onClick={() => setSelectedTag(tag)}
+                          >
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Badge variant="secondary">{tag.tagName}</Badge>
+                              <span className="text-xs text-muted-foreground">{tag.path}</span>
+                            </div>
+                            {tag.content && (
+                              <p className="text-sm truncate">
+                                <strong>Conteúdo:</strong> {tag.content}
+                              </p>
+                            )}
+                            {tag.attributes && Object.keys(tag.attributes).length > 0 && (
+                              <div className="mt-1">
+                                <span className="text-xs font-medium">Atributos:</span>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {Object.entries(tag.attributes).map(([key, value]) => (
+                                    <Badge key={key} variant="outline" className="text-xs">
+                                      {key}="{value}"
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </CardContent>
                 </Card>
+
+                {selectedTag && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center justify-between">
+                        Detalhes da Tag
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setSelectedTag(null)}
+                        >
+                          Fechar
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-sm font-medium">Nome:</label>
+                          <p className="text-sm">{selectedTag.tagName}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Caminho:</label>
+                          <p className="text-sm font-mono text-muted-foreground">{selectedTag.path}</p>
+                        </div>
+                        {selectedTag.content && (
+                          <div>
+                            <label className="text-sm font-medium">Conteúdo:</label>
+                            <p className="text-sm bg-muted p-2 rounded">{selectedTag.content}</p>
+                          </div>
+                        )}
+                        {selectedTag.attributes && Object.keys(selectedTag.attributes).length > 0 && (
+                          <div>
+                            <label className="text-sm font-medium">Atributos:</label>
+                            <div className="space-y-1 mt-1">
+                              {Object.entries(selectedTag.attributes).map(([key, value]) => (
+                                <div key={key} className="flex items-center space-x-2 text-sm">
+                                  <span className="font-mono">{key}:</span>
+                                  <span className="bg-muted px-2 py-1 rounded">{value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </>
             )}
           </div>
