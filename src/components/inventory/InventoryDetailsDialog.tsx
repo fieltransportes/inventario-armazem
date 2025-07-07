@@ -7,6 +7,7 @@ import { CheckCircle, Save } from 'lucide-react';
 import { useInventory } from '../../hooks/useInventory';
 import { useInventoryItems } from '../../hooks/useInventoryItems';
 import InventoryItemsTable from './InventoryItemsTable';
+import InventoryFilesManager from './InventoryFilesManager';
 
 interface InventoryDetailsDialogProps {
   inventoryId: string;
@@ -104,6 +105,12 @@ const InventoryDetailsDialog: React.FC<InventoryDetailsDialogProps> = ({
             inventoryStatus={inventory?.status || 'open'}
             onQuantityChange={handleQuantityChange}
             onSaveQuantity={handleSaveQuantity}
+          />
+
+          <InventoryFilesManager
+            inventoryId={inventoryId}
+            inventoryNumber={inventory?.inventory_number || ''}
+            inventoryStatus={inventory?.status || 'open'}
           />
         </div>
       </DialogContent>
