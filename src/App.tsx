@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Inventory from "./pages/Inventory";
 import Auth from "./pages/Auth";
 import Upload from "./pages/Upload";
+import TagMapping from "./pages/TagMapping";
 import UserManagementPage from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
@@ -37,6 +38,11 @@ const App = () => (
             <Route path="/inventory" element={
               <ProtectedRoute>
                 <Inventory />
+              </ProtectedRoute>
+            } />
+            <Route path="/tag-mapping" element={
+              <ProtectedRoute>
+                <TagMapping />
               </ProtectedRoute>
             } />
             <Route path="/users" element={
