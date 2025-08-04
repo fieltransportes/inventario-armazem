@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,27 +7,34 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileText, Plus, Search } from 'lucide-react';
 import { NFEData } from '@/types/nfe';
+import { getNFEData } from '@/utils/storage';
 
 interface ProductFromNFEProps {
   onCreateProduct: (nfeProduct: any) => Promise<void>;
 }
 
 const ProductFromNFE: React.FC<ProductFromNFEProps> = ({ onCreateProduct }) => {
-  const [selectedNFEs, setSelectedNFEs] = useState<NFEData[]>([]);
+  const [nfes, setNfes] = useState<NFEData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingNFEs, setLoadingNFEs] = useState(true);
 
-  // Get NFEs from localStorage (você pode melhorar isso usando um contexto global)
-  const getNFEsFromStorage = (): NFEData[] => {
-    try {
-      const stored = localStorage.getItem('nfeData');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  };
+  // Load NFEs from Supabase
+  useEffect(() => {
+    const loadNFEs = async () => {
+      try {
+        setLoadingNFEs(true);
+        const nfeData = await getNFEData();
+        setNfes(nfeData);
+      } catch (error) {
+        console.error('Erro ao carregar NFEs:', error);
+      } finally {
+        setLoadingNFEs(false);
+      }
+    };
 
-  const nfes = getNFEsFromStorage();
+    loadNFEs();
+  }, []);
   
   // Get all unique products from NFEs
   const getAllProducts = () => {
@@ -94,7 +101,12 @@ const ProductFromNFE: React.FC<ProductFromNFEProps> = ({ onCreateProduct }) => {
               </div>
             </div>
 
-            {filteredProducts.length === 0 ? (
+            {loadingNFEs ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Carregando NFEs...</p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">
