@@ -11,6 +11,7 @@ import Inventory from "./pages/Inventory";
 import Auth from "./pages/Auth";
 import Upload from "./pages/Upload";
 import TagMapping from "./pages/TagMapping";
+import Products from "./pages/Products";
 import UserManagementPage from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
@@ -43,6 +44,11 @@ const App = () => (
             <Route path="/tag-mapping" element={
               <ProtectedRoute>
                 <TagMapping />
+              </ProtectedRoute>
+            } />
+            <Route path="/products" element={
+              <ProtectedRoute>
+                <Products />
               </ProtectedRoute>
             } />
             <Route path="/users" element={

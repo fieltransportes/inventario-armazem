@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Users, Package, Settings } from 'lucide-react';
+import { LogOut, User, Users, Package, Settings, Archive } from 'lucide-react';
 import { useAuthContext } from '@/contexts/AuthContext';
 
 const Navbar: React.FC = () => {
@@ -26,6 +26,15 @@ const Navbar: React.FC = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/products')}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Produtos
+            </Button>
+            
             <Button
               variant="outline"
               size="sm"

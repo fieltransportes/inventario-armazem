@@ -177,6 +177,51 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          base_unit: string
+          box_per_pallet: number | null
+          code: string
+          created_at: string
+          description: string | null
+          ean_box: string | null
+          ean_unit: string | null
+          id: string
+          name: string
+          unit_per_box: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_unit?: string
+          box_per_pallet?: number | null
+          code: string
+          created_at?: string
+          description?: string | null
+          ean_box?: string | null
+          ean_unit?: string | null
+          id?: string
+          name: string
+          unit_per_box?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_unit?: string
+          box_per_pallet?: number | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          ean_box?: string | null
+          ean_unit?: string | null
+          id?: string
+          name?: string
+          unit_per_box?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approval_status: string

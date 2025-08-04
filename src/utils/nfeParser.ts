@@ -100,6 +100,10 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
         unit: getTextContent('uCom', prodElement),
         ncm: getTextContent('NCM', prodElement),
         cfop: getTextContent('CFOP', prodElement),
+        // Adicionar campos para cadastro de produtos
+        code: productCode,
+        ean_box: getTextContent('cEAN', prodElement),
+        ean_unit: getTextContent('cEANTrib', prodElement),
       };
     });
 

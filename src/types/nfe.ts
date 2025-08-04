@@ -8,6 +8,9 @@ export interface NFEProduct {
   unit: string;
   ncm?: string;
   cfop?: string;
+  code?: string; // cProd
+  ean_box?: string; // cEAN
+  ean_unit?: string; // cEANTrib
 }
 
 export interface NFESeller {
