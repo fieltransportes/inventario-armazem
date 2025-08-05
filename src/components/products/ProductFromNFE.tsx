@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { FileText, Plus, Search } from 'lucide-react';
 import { NFEData } from '@/types/nfe';
 import { getNFEData } from '@/utils/storage';
+import { useProducts } from '@/hooks/useProducts';
 
 interface ProductFromNFEProps {
   onCreateProduct: (nfeProduct: any) => Promise<void>;
@@ -18,6 +19,7 @@ const ProductFromNFE: React.FC<ProductFromNFEProps> = ({ onCreateProduct }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingNFEs, setLoadingNFEs] = useState(true);
+  const { products } = useProducts();
 
   // Load NFEs from Supabase
   useEffect(() => {
@@ -36,17 +38,22 @@ const ProductFromNFE: React.FC<ProductFromNFEProps> = ({ onCreateProduct }) => {
     loadNFEs();
   }, []);
   
-  // Get all unique products from NFEs
+  // Get all products from NFEs that are not already registered
   const getAllProducts = () => {
-    const products: any[] = [];
+    const nfeProducts: any[] = [];
+    const registeredCodes = new Set(products.map(p => p.code));
+    
     nfes.forEach(nfe => {
       nfe.products.forEach(product => {
-        // Only add if not already exists (by code)
-        const exists = products.some(p => p.code === (product.code || product.id));
-        if (!exists) {
-          products.push({
+        const productCode = product.code || product.id;
+        // Only add if not already registered and not already in list
+        const existsInNFEList = nfeProducts.some(p => p.code === productCode);
+        const isRegistered = registeredCodes.has(productCode);
+        
+        if (!existsInNFEList && !isRegistered) {
+          nfeProducts.push({
             ...product,
-            code: product.code || product.id,
+            code: productCode,
             ean_box: product.ean_box,
             ean_unit: product.ean_unit,
             nfeNumber: nfe.number,
@@ -55,7 +62,7 @@ const ProductFromNFE: React.FC<ProductFromNFEProps> = ({ onCreateProduct }) => {
         }
       });
     });
-    return products;
+    return nfeProducts;
   };
 
   const allProducts = getAllProducts();
