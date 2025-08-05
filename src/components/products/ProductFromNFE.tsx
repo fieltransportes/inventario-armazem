@@ -5,10 +5,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileText, Plus, Search } from 'lucide-react';
 import { NFEData } from '@/types/nfe';
 import { getNFEData } from '@/utils/storage';
 import { useProducts } from '@/hooks/useProducts';
+import ProductForm from './ProductForm';
+import { ProductFormData } from '@/types/product';
 
 interface ProductFromNFEProps {
   onCreateProduct: (nfeProduct: any) => Promise<void>;
@@ -19,6 +22,8 @@ const ProductFromNFE: React.FC<ProductFromNFEProps> = ({ onCreateProduct }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingNFEs, setLoadingNFEs] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [showDialog, setShowDialog] = useState(false);
   const { products } = useProducts();
 
   // Load NFEs from Supabase
@@ -74,14 +79,26 @@ const ProductFromNFE: React.FC<ProductFromNFEProps> = ({ onCreateProduct }) => {
   );
 
   const handleCreateProduct = async (product: any) => {
+    setSelectedProduct(product);
+    setShowDialog(true);
+  };
+
+  const handleFormSubmit = async (formData: ProductFormData) => {
     setLoading(true);
     try {
-      await onCreateProduct(product);
+      await onCreateProduct({ ...selectedProduct, ...formData });
+      setShowDialog(false);
+      setSelectedProduct(null);
     } catch (error) {
       // Error handled in parent
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDialogClose = () => {
+    setShowDialog(false);
+    setSelectedProduct(null);
   };
 
   return (
@@ -171,6 +188,28 @@ const ProductFromNFE: React.FC<ProductFromNFEProps> = ({ onCreateProduct }) => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Cadastrar Produto</DialogTitle>
+          </DialogHeader>
+          {selectedProduct && (
+            <ProductForm
+              initialData={{
+                code: selectedProduct.code,
+                ean_box: selectedProduct.ean_box,
+                ean_unit: selectedProduct.ean_unit,
+                name: selectedProduct.name,
+                base_unit: selectedProduct.unit || 'UN',
+              }}
+              onSubmit={handleFormSubmit}
+              onCancel={handleDialogClose}
+              isLoading={loading}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
