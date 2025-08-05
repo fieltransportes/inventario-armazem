@@ -15,6 +15,7 @@ const Inventory: React.FC = () => {
   const [activeTab, setActiveTab] = useState('search');
   const [allNFEData, setAllNFEData] = useState<NFEData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showUnitized, setShowUnitized] = useState(false);
   
   // Load NFE data on component mount
   useEffect(() => {
@@ -79,6 +80,8 @@ const Inventory: React.FC = () => {
               onRemoveFilter={handleRemoveFilter}
               onClearAllFilters={handleClearAllFilters}
               resultsCount={{ nfes: filteredNFEs.length, products: allProducts.length }}
+              showUnitized={showUnitized}
+              onUnitizedToggle={setShowUnitized}
             />
 
             {searchFilters.length > 0 && filteredNFEs.length > 0 && (
@@ -87,6 +90,7 @@ const Inventory: React.FC = () => {
                 allProducts={allProducts}
                 inventorySummary={inventorySummary}
                 searchFilters={searchFilters}
+                showUnitized={showUnitized}
               />
             )}
 

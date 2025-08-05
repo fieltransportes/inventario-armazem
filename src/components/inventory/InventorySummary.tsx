@@ -14,10 +14,21 @@ interface InventoryItem {
 
 interface InventorySummaryProps {
   inventorySummary: InventoryItem[];
+  showUnitized?: boolean;
 }
 
-const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary }) => {
-  const formatQuantity = (quantity: number, unit: string) => {
+const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, showUnitized = false }) => {
+  const formatQuantity = (quantity: number, unit: string, showUnitized: boolean = false) => {
+    if (showUnitized && unit === 'UN') {
+      // Simular conversão para caixas (assumindo 12 unidades por caixa)
+      const boxes = Math.floor(quantity / 12);
+      const remainingUnits = quantity % 12;
+      if (boxes > 0 && remainingUnits > 0) {
+        return `${boxes.toLocaleString('pt-BR')} CX + ${remainingUnits} UN`;
+      } else if (boxes > 0) {
+        return `${boxes.toLocaleString('pt-BR')} CX`;
+      }
+    }
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
   };
 
@@ -40,7 +51,7 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary })
               <TableRow key={index}>
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell className="text-right">
-                  {formatQuantity(item.totalQuantity, item.unit)}
+                  {formatQuantity(item.totalQuantity, item.unit, showUnitized)}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant="secondary">

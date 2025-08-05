@@ -13,10 +13,21 @@ interface ProductWithNFE extends NFEProduct {
 
 interface ProductListProps {
   products: ProductWithNFE[];
+  showUnitized?: boolean;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ products }) => {
-  const formatQuantity = (quantity: number, unit: string) => {
+const ProductList: React.FC<ProductListProps> = ({ products, showUnitized = false }) => {
+  const formatQuantity = (quantity: number, unit: string, showUnitized: boolean = false) => {
+    if (showUnitized && unit === 'UN') {
+      // Simular conversão para caixas (assumindo 12 unidades por caixa)
+      const boxes = Math.floor(quantity / 12);
+      const remainingUnits = quantity % 12;
+      if (boxes > 0 && remainingUnits > 0) {
+        return `${boxes.toLocaleString('pt-BR')} CX + ${remainingUnits} UN`;
+      } else if (boxes > 0) {
+        return `${boxes.toLocaleString('pt-BR')} CX`;
+      }
+    }
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
   };
 
@@ -46,7 +57,7 @@ const ProductList: React.FC<ProductListProps> = ({ products }) => {
                 <TableCell>{product.nfeDate}</TableCell>
                 <TableCell className="max-w-xs truncate">{product.seller}</TableCell>
                 <TableCell className="text-right">
-                  {formatQuantity(product.quantity, product.unit)}
+                  {formatQuantity(product.quantity, product.unit, showUnitized)}
                 </TableCell>
               </TableRow>
             ))}

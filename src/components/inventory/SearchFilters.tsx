@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface SearchFilter {
   id: string;
@@ -22,6 +24,8 @@ interface SearchFiltersProps {
   onRemoveFilter: (filterId: string) => void;
   onClearAllFilters: () => void;
   resultsCount: { nfes: number; products: number };
+  showUnitized?: boolean;
+  onUnitizedToggle?: (value: boolean) => void;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
@@ -33,7 +37,9 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   onAddFilter,
   onRemoveFilter,
   onClearAllFilters,
-  resultsCount
+  resultsCount,
+  showUnitized = false,
+  onUnitizedToggle
 }) => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -131,6 +137,20 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           </div>
         )}
         
+        {/* Unitized Toggle */}
+        {searchFilters.length > 0 && onUnitizedToggle && (
+          <div className="flex items-center space-x-2 pt-2 border-t">
+            <Switch
+              id="unitized-toggle"
+              checked={showUnitized}
+              onCheckedChange={onUnitizedToggle}
+            />
+            <Label htmlFor="unitized-toggle" className="text-sm font-medium">
+              Unitizado
+            </Label>
+          </div>
+        )}
+
         {/* Results Summary */}
         {searchFilters.length > 0 && (
           <div className="text-sm text-gray-600">

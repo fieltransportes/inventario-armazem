@@ -15,13 +15,15 @@ interface InventoryResultsProps {
   allProducts: any[];
   inventorySummary: any[];
   searchFilters: any[];
+  showUnitized?: boolean;
 }
 
 const InventoryResults: React.FC<InventoryResultsProps> = ({
   filteredNFEs,
   allProducts,
   inventorySummary,
-  searchFilters
+  searchFilters,
+  showUnitized = false
 }) => {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
@@ -53,11 +55,11 @@ const InventoryResults: React.FC<InventoryResultsProps> = ({
         </TabsList>
 
         <TabsContent value="summary">
-          <InventorySummary inventorySummary={inventorySummary} />
+          <InventorySummary inventorySummary={inventorySummary} showUnitized={showUnitized} />
         </TabsContent>
 
         <TabsContent value="detailed">
-          <ProductList products={allProducts} />
+          <ProductList products={allProducts} showUnitized={showUnitized} />
         </TabsContent>
 
         <TabsContent value="delivery">
