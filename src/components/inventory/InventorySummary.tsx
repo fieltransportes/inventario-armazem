@@ -27,6 +27,8 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, s
         return `${boxes.toLocaleString('pt-BR')} CX + ${remainingUnits} UN`;
       } else if (boxes > 0) {
         return `${boxes.toLocaleString('pt-BR')} CX`;
+      } else {
+        return `${remainingUnits} UN`;
       }
     }
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
