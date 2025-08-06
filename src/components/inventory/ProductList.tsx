@@ -27,21 +27,40 @@ const ProductList: React.FC<ProductListProps> = ({ products, showUnitized = fals
   const formatQuantity = (quantity: number, unit: string, product: ProductWithNFE, showUnitized: boolean = false) => {
     console.log('ProductList formatQuantity:', { quantity, unit, showUnitized, productCode: product.code });
     
-    if (showUnitized && unit === 'UN') {
+    if (showUnitized) {
       const registeredProduct = findProductByCode(product.code || '');
       console.log('Found registered product:', registeredProduct);
-      const unitsPerBox = registeredProduct?.unit_per_box || 12;
-      console.log('Units per box:', unitsPerBox);
       
-      const boxes = Math.floor(quantity / unitsPerBox);
-      const remainingUnits = quantity % unitsPerBox;
+      // Se o produto tem regras de unitização definidas
+      if (registeredProduct?.unit_per_box && unit === 'UN') {
+        const unitsPerBox = registeredProduct.unit_per_box;
+        console.log('Units per box:', unitsPerBox);
+        
+        const boxes = Math.floor(quantity / unitsPerBox);
+        const remainingUnits = quantity % unitsPerBox;
+        
+        if (boxes > 0 && remainingUnits > 0) {
+          return `${boxes.toLocaleString('pt-BR')} CX + ${remainingUnits} UN`;
+        } else if (boxes > 0) {
+          return `${boxes.toLocaleString('pt-BR')} CX`;
+        } else {
+          return `${remainingUnits} UN`;
+        }
+      }
       
-      if (boxes > 0 && remainingUnits > 0) {
-        return `${boxes.toLocaleString('pt-BR')} CX + ${remainingUnits} UN`;
-      } else if (boxes > 0) {
-        return `${boxes.toLocaleString('pt-BR')} CX`;
-      } else {
-        return `${remainingUnits} UN`;
+      // Se já está em caixas mas tem regra de palete
+      if (registeredProduct?.box_per_pallet && unit === 'CX') {
+        const boxesPerPallet = registeredProduct.box_per_pallet;
+        const pallets = Math.floor(quantity / boxesPerPallet);
+        const remainingBoxes = quantity % boxesPerPallet;
+        
+        if (pallets > 0 && remainingBoxes > 0) {
+          return `${pallets.toLocaleString('pt-BR')} PAL + ${remainingBoxes} CX`;
+        } else if (pallets > 0) {
+          return `${pallets.toLocaleString('pt-BR')} PAL`;
+        } else {
+          return `${remainingBoxes} CX`;
+        }
       }
     }
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
