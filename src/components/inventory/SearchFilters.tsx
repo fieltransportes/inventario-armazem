@@ -143,7 +143,10 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             <Switch
               id="unitized-toggle"
               checked={showUnitized}
-              onCheckedChange={onUnitizedToggle}
+              onCheckedChange={(checked) => {
+                console.log('Toggle changed:', checked);
+                onUnitizedToggle?.(checked);
+              }}
             />
             <Label htmlFor="unitized-toggle" className="text-sm font-medium">
               Unitizado

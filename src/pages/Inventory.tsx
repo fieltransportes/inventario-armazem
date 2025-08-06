@@ -81,7 +81,10 @@ const Inventory: React.FC = () => {
               onClearAllFilters={handleClearAllFilters}
               resultsCount={{ nfes: filteredNFEs.length, products: allProducts.length }}
               showUnitized={showUnitized}
-              onUnitizedToggle={setShowUnitized}
+              onUnitizedToggle={(value) => {
+                console.log('Inventory.tsx - Toggle changed to:', value);
+                setShowUnitized(value);
+              }}
             />
 
             {searchFilters.length > 0 && filteredNFEs.length > 0 && (

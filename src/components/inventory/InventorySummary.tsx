@@ -27,9 +27,13 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, s
   };
 
   const formatQuantity = (quantity: number, unit: string, item: InventoryItem, showUnitized: boolean = false) => {
+    console.log('InventorySummary formatQuantity:', { quantity, unit, showUnitized, productCode: item.code });
+    
     if (showUnitized && unit === 'UN') {
       const product = findProductByCode(item.code || '');
-      const unitsPerBox = product?.unit_per_box || 12; // fallback para 12 se não encontrado
+      console.log('Found product:', product);
+      const unitsPerBox = product?.unit_per_box || 12;
+      console.log('Units per box:', unitsPerBox);
       
       const boxes = Math.floor(quantity / unitsPerBox);
       const remainingUnits = quantity % unitsPerBox;

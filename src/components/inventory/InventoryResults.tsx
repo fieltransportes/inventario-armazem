@@ -25,6 +25,7 @@ const InventoryResults: React.FC<InventoryResultsProps> = ({
   searchFilters,
   showUnitized = false
 }) => {
+  console.log('InventoryResults received showUnitized:', showUnitized);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
   return (

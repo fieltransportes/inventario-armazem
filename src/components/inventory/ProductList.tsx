@@ -25,9 +25,13 @@ const ProductList: React.FC<ProductListProps> = ({ products, showUnitized = fals
   };
 
   const formatQuantity = (quantity: number, unit: string, product: ProductWithNFE, showUnitized: boolean = false) => {
+    console.log('ProductList formatQuantity:', { quantity, unit, showUnitized, productCode: product.code });
+    
     if (showUnitized && unit === 'UN') {
       const registeredProduct = findProductByCode(product.code || '');
-      const unitsPerBox = registeredProduct?.unit_per_box || 12; // fallback para 12 se não encontrado
+      console.log('Found registered product:', registeredProduct);
+      const unitsPerBox = registeredProduct?.unit_per_box || 12;
+      console.log('Units per box:', unitsPerBox);
       
       const boxes = Math.floor(quantity / unitsPerBox);
       const remainingUnits = quantity % unitsPerBox;
