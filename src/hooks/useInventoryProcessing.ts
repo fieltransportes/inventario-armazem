@@ -24,6 +24,7 @@ export const useInventoryProcessing = (filteredNFEs: NFEData[]) => {
   const inventorySummary = useMemo(() => {
     const summary = new Map<string, {
       name: string;
+      code?: string;
       totalQuantity: number;
       totalValue: number;
       unit: string;
@@ -41,6 +42,7 @@ export const useInventoryProcessing = (filteredNFEs: NFEData[]) => {
       } else {
         summary.set(key, {
           name: product.name,
+          code: product.code,
           totalQuantity: product.quantity,
           totalValue: product.totalPrice,
           unit: product.unit,

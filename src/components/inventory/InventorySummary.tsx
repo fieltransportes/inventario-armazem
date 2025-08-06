@@ -7,6 +7,7 @@ import { useProducts } from '@/hooks/useProducts';
 
 interface InventoryItem {
   name: string;
+  code?: string;
   totalQuantity: number;
   totalValue: number;
   unit: string;
@@ -21,13 +22,13 @@ interface InventorySummaryProps {
 const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, showUnitized = false }) => {
   const { products } = useProducts();
   
-  const findProductByName = (productName: string) => {
-    return products.find(p => p.name.toLowerCase() === productName.toLowerCase());
+  const findProductByCode = (productCode: string) => {
+    return products.find(p => p.code === productCode);
   };
 
-  const formatQuantity = (quantity: number, unit: string, productName: string, showUnitized: boolean = false) => {
+  const formatQuantity = (quantity: number, unit: string, item: InventoryItem, showUnitized: boolean = false) => {
     if (showUnitized && unit === 'UN') {
-      const product = findProductByName(productName);
+      const product = findProductByCode(item.code || '');
       const unitsPerBox = product?.unit_per_box || 12; // fallback para 12 se não encontrado
       
       const boxes = Math.floor(quantity / unitsPerBox);
@@ -63,7 +64,7 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, s
               <TableRow key={index}>
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell className="text-right">
-                  {formatQuantity(item.totalQuantity, item.unit, item.name, showUnitized)}
+                  {formatQuantity(item.totalQuantity, item.unit, item, showUnitized)}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant="secondary">

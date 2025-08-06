@@ -20,14 +20,14 @@ interface ProductListProps {
 const ProductList: React.FC<ProductListProps> = ({ products, showUnitized = false }) => {
   const { products: registeredProducts } = useProducts();
   
-  const findProductByName = (productName: string) => {
-    return registeredProducts.find(p => p.name.toLowerCase() === productName.toLowerCase());
+  const findProductByCode = (productCode: string) => {
+    return registeredProducts.find(p => p.code === productCode);
   };
 
-  const formatQuantity = (quantity: number, unit: string, productName: string, showUnitized: boolean = false) => {
+  const formatQuantity = (quantity: number, unit: string, product: ProductWithNFE, showUnitized: boolean = false) => {
     if (showUnitized && unit === 'UN') {
-      const product = findProductByName(productName);
-      const unitsPerBox = product?.unit_per_box || 12; // fallback para 12 se não encontrado
+      const registeredProduct = findProductByCode(product.code || '');
+      const unitsPerBox = registeredProduct?.unit_per_box || 12; // fallback para 12 se não encontrado
       
       const boxes = Math.floor(quantity / unitsPerBox);
       const remainingUnits = quantity % unitsPerBox;
@@ -69,7 +69,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, showUnitized = fals
                 <TableCell>{product.nfeDate}</TableCell>
                 <TableCell className="max-w-xs truncate">{product.seller}</TableCell>
                 <TableCell className="text-right">
-                  {formatQuantity(product.quantity, product.unit, product.name, showUnitized)}
+                  {formatQuantity(product.quantity, product.unit, product, showUnitized)}
                 </TableCell>
               </TableRow>
             ))}
