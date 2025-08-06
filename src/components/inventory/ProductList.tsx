@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { NFEProduct } from '../../types/nfe';
+import { useProducts } from '@/hooks/useProducts';
 
 interface ProductWithNFE extends NFEProduct {
   nfeNumber: string;
@@ -17,11 +18,20 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ products, showUnitized = false }) => {
-  const formatQuantity = (quantity: number, unit: string, showUnitized: boolean = false) => {
+  const { products: registeredProducts } = useProducts();
+  
+  const findProductByName = (productName: string) => {
+    return registeredProducts.find(p => p.name.toLowerCase() === productName.toLowerCase());
+  };
+
+  const formatQuantity = (quantity: number, unit: string, productName: string, showUnitized: boolean = false) => {
     if (showUnitized && unit === 'UN') {
-      // Simular conversão para caixas (assumindo 12 unidades por caixa)
-      const boxes = Math.floor(quantity / 12);
-      const remainingUnits = quantity % 12;
+      const product = findProductByName(productName);
+      const unitsPerBox = product?.unit_per_box || 12; // fallback para 12 se não encontrado
+      
+      const boxes = Math.floor(quantity / unitsPerBox);
+      const remainingUnits = quantity % unitsPerBox;
+      
       if (boxes > 0 && remainingUnits > 0) {
         return `${boxes.toLocaleString('pt-BR')} CX + ${remainingUnits} UN`;
       } else if (boxes > 0) {
@@ -59,7 +69,7 @@ const ProductList: React.FC<ProductListProps> = ({ products, showUnitized = fals
                 <TableCell>{product.nfeDate}</TableCell>
                 <TableCell className="max-w-xs truncate">{product.seller}</TableCell>
                 <TableCell className="text-right">
-                  {formatQuantity(product.quantity, product.unit, showUnitized)}
+                  {formatQuantity(product.quantity, product.unit, product.name, showUnitized)}
                 </TableCell>
               </TableRow>
             ))}
