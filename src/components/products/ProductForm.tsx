@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import UnitConversionManager from '@/components/unitConversion/UnitConversionManager';
 
 interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
@@ -159,6 +161,20 @@ const ProductForm: React.FC<ProductFormProps> = ({
             </Button>
           </div>
         </form>
+
+        {/* Configuração de Conversão de Unidades */}
+        {watch('code') && (
+          <>
+            <Separator className="my-6" />
+            <div>
+              <h3 className="text-lg font-medium mb-4">Configuração de Conversão de Unidades</h3>
+              <UnitConversionManager 
+                productCode={watch('code')}
+                productName={watch('name') || 'Produto sem nome'}
+              />
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
