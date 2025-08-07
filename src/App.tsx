@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Upload from "./pages/Upload";
 import TagMapping from "./pages/TagMapping";
 import Products from "./pages/Products";
+import UnitConversion from "./pages/UnitConversion";
 import UserManagementPage from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
@@ -49,6 +50,11 @@ const App = () => (
             <Route path="/products" element={
               <ProtectedRoute>
                 <Products />
+              </ProtectedRoute>
+            } />
+            <Route path="/unit-conversion" element={
+              <ProtectedRoute>
+                <UnitConversion />
               </ProtectedRoute>
             } />
             <Route path="/users" element={

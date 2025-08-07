@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Users, Package, Settings, Archive } from 'lucide-react';
+import { LogOut, User, Users, Package, Settings, Archive, Ruler } from 'lucide-react';
 import { useAuthContext } from '@/contexts/AuthContext';
 
 const Navbar: React.FC = () => {
@@ -42,6 +42,15 @@ const Navbar: React.FC = () => {
             >
               <Settings className="h-4 w-4 mr-2" />
               Parametrização
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/unit-conversion')}
+            >
+              <Ruler className="h-4 w-4 mr-2" />
+              Conversão de Unidades
             </Button>
             
             {(isAdmin || isManager) && (
