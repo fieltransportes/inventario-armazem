@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useProducts } from '@/hooks/useProducts';
+import { useUnitConversion } from '@/hooks/useUnitConversion';
 
 interface InventoryItem {
   name: string;
@@ -20,50 +20,12 @@ interface InventorySummaryProps {
 }
 
 const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, showUnitized = false }) => {
-  const { products } = useProducts();
-  
-  const findProductByCode = (productCode: string) => {
-    return products.find(p => p.code === productCode);
-  };
+  const { convertQuantity } = useUnitConversion();
 
   const formatQuantity = (quantity: number, unit: string, item: InventoryItem, showUnitized: boolean = false) => {
     console.log('InventorySummary formatQuantity:', { quantity, unit, showUnitized, productCode: item.code });
-    
-    if (showUnitized) {
-      const product = findProductByCode(item.code || '');
-      console.log('Found product:', product);
-      
-      // Se o produto tem regras de unitização definidas
-      if (product?.unit_per_box && unit === 'UN') {
-        const unitsPerBox = product.unit_per_box;
-        console.log('Units per box:', unitsPerBox);
-        
-        const boxes = Math.floor(quantity / unitsPerBox);
-        const remainingUnits = quantity % unitsPerBox;
-        
-        if (boxes > 0 && remainingUnits > 0) {
-          return `${boxes.toLocaleString('pt-BR')} CX + ${remainingUnits} UN`;
-        } else if (boxes > 0) {
-          return `${boxes.toLocaleString('pt-BR')} CX`;
-        } else {
-          return `${remainingUnits} UN`;
-        }
-      }
-      
-      // Se já está em caixas mas tem regra de palete
-      if (product?.box_per_pallet && unit === 'CX') {
-        const boxesPerPallet = product.box_per_pallet;
-        const pallets = Math.floor(quantity / boxesPerPallet);
-        const remainingBoxes = quantity % boxesPerPallet;
-        
-        if (pallets > 0 && remainingBoxes > 0) {
-          return `${pallets.toLocaleString('pt-BR')} PAL + ${remainingBoxes} CX`;
-        } else if (pallets > 0) {
-          return `${pallets.toLocaleString('pt-BR')} PAL`;
-        } else {
-          return `${remainingBoxes} CX`;
-        }
-      }
+    if (showUnitized && item.code) {
+      return convertQuantity(quantity, unit, item.code);
     }
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
   };
