@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building, User, FileText, Package, Printer, Eye, EyeOff } from 'lucide-react';
 import { NFEData } from '@/types/nfe';
+import { useUnitConversion } from '@/hooks/useUnitConversion';
 
 interface DeliveryGroup {
   seller: string;
@@ -23,16 +24,19 @@ interface DeliveryGroup {
     nfeNumber: string;
     unitPrice: number;
     id: string; // Product code/ID
+    code?: string; // cProd quando disponível
   }>;
 }
 
 interface DeliveryGroupingProps {
   filteredNFEs: NFEData[];
+  showUnitized?: boolean;
 }
 
-const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => {
+const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs, showUnitized = false }) => {
   const [showQuantities, setShowQuantities] = useState(true);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+  const { convertQuantity } = useUnitConversion();
 
   // Helper function to remove leading zeros
   const removeLeadingZeros = (value: string): string => {
@@ -61,7 +65,8 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
             totalPrice: product.totalPrice,
             nfeNumber: nfe.number,
             unitPrice: product.unitPrice,
-            id: product.id // Este é o código da tag cProd
+            id: product.id, // Este é o código interno
+            code: product.code || product.id
           });
         });
       } else {
@@ -81,7 +86,8 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
             totalPrice: product.totalPrice,
             nfeNumber: nfe.number,
             unitPrice: product.unitPrice,
-            id: product.id // Este é o código da tag cProd
+            id: product.id, // Este é o id interno
+            code: product.code || product.id
           }))
         });
       }
@@ -105,9 +111,12 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
     }).format(value);
   };
 
-  const formatQuantity = (quantity: number, unit: string) => {
-    return `${quantity.toLocaleString('pt-BR')} ${unit}`;
-  };
+const formatQuantity = (quantity: number, unit: string, productCode?: string) => {
+  if (showUnitized && productCode) {
+    return convertQuantity(quantity, unit, productCode);
+  }
+  return `${quantity.toLocaleString('pt-BR')} ${unit}`;
+};
 
   const toggleGroupExpansion = (index: number) => {
     const newExpanded = new Set(expandedGroups);
@@ -261,7 +270,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                       <td class="product-code">${removeLeadingZeros(product.id)}</td>
                       <td class="product-name">${product.name}</td>
                       <td class="text-center">${product.nfeNumber}</td>
-                      <td class="${showQuantities ? 'text-right' : 'text-center'}">${showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}</td>
+                      <td class="${showQuantities ? 'text-right' : 'text-center'}">${showQuantities ? formatQuantity(product.quantity, product.unit, product.code || product.id) : '________'}</td>
                       <td class="text-center"><span class="blank-space"></span></td>
                     </tr>
                   `).join('')}
@@ -419,7 +428,7 @@ const DeliveryGrouping: React.FC<DeliveryGroupingProps> = ({ filteredNFEs }) => 
                             <td className="py-2 text-gray-900">{product.name}</td>
                             <td className="py-2 text-center text-gray-600">{product.nfeNumber}</td>
                             <td className="py-2 text-right text-gray-900">
-                              {showQuantities ? formatQuantity(product.quantity, product.unit) : '________'}
+                              {showQuantities ? formatQuantity(product.quantity, product.unit, product.code || product.id) : '________'}
                             </td>
                             <td className="py-2 text-center">
                               <div className="w-16 h-6 border-b border-gray-400 mx-auto"></div>

@@ -64,7 +64,7 @@ const InventoryResults: React.FC<InventoryResultsProps> = ({
         </TabsContent>
 
         <TabsContent value="delivery">
-          <DeliveryGrouping filteredNFEs={filteredNFEs} />
+          <DeliveryGrouping filteredNFEs={filteredNFEs} showUnitized={showUnitized} />
         </TabsContent>
 
         <TabsContent value="nfes">
