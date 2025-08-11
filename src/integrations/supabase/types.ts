@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_units: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventories: {
         Row: {
           assigned_users: string[] | null

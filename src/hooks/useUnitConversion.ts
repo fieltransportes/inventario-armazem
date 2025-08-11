@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { UnitType, UnitConversion, ProductUnitConfig, DEFAULT_UNITS } from '../types/unitConversion';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
 
 export const useUnitConversion = () => {
+  const { user } = useAuth();
   const [units, setUnits] = useState<UnitType[]>(DEFAULT_UNITS);
   const [productConfigs, setProductConfigs] = useState<ProductUnitConfig[]>([]);
 
@@ -30,11 +33,28 @@ export const useUnitConversion = () => {
     localStorage.setItem('productUnitConfigs', JSON.stringify(productConfigs));
   }, [productConfigs]);
 
-  const addCustomUnit = (unit: Omit<UnitType, 'id'>) => {
+  const addCustomUnit = async (unit: Omit<UnitType, 'id'>) => {
     const newUnit: UnitType = {
       ...unit,
       id: Date.now().toString()
     };
+    
+    // Salvar no Supabase se o usuário estiver logado
+    if (user) {
+      try {
+        await supabase
+          .from('custom_units')
+          .insert({
+            user_id: user.id,
+            code: unit.code,
+            name: unit.name,
+            category: unit.category
+          });
+      } catch (error) {
+        console.error('Erro ao salvar unidade no Supabase:', error);
+      }
+    }
+    
     setUnits(prev => [...prev, newUnit]);
   };
 
