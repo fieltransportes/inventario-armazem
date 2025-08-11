@@ -1,5 +1,11 @@
 
 import { SupplierOrderConfig } from '../types/nfe';
+import { 
+  getSupplierConfigsFromSupabase,
+  saveSupplierConfigToSupabase,
+  deleteSupplierConfigFromSupabase,
+  migrateSupplierConfigsToSupabase
+} from './supabaseSupplierConfig';
 
 const SUPPLIER_CONFIG_KEY = 'supplier-order-config';
 
@@ -14,45 +20,78 @@ const DEFAULT_CONFIGS: SupplierOrderConfig[] = [
   }
 ];
 
-export const getSupplierConfigs = (): SupplierOrderConfig[] => {
-  const stored = localStorage.getItem(SUPPLIER_CONFIG_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch (error) {
-      console.error('Error parsing supplier configs:', error);
+export const getSupplierConfigs = async (): Promise<SupplierOrderConfig[]> => {
+  try {
+    const configs = await getSupplierConfigsFromSupabase();
+    if (configs.length > 0) {
+      return [...DEFAULT_CONFIGS, ...configs];
     }
+    
+    // Fallback to localStorage and migrate if needed
+    const stored = localStorage.getItem(SUPPLIER_CONFIG_KEY);
+    if (stored) {
+      await migrateSupplierConfigsToSupabase();
+      return await getSupplierConfigsFromSupabase();
+    }
+    
+    return DEFAULT_CONFIGS;
+  } catch (error) {
+    console.error('Error getting supplier configs:', error);
+    
+    // Fallback to localStorage
+    const stored = localStorage.getItem(SUPPLIER_CONFIG_KEY);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (parseError) {
+        console.error('Error parsing supplier configs:', parseError);
+      }
+    }
+    return DEFAULT_CONFIGS;
   }
-  return DEFAULT_CONFIGS;
 };
 
 export const saveSupplierConfigs = (configs: SupplierOrderConfig[]): void => {
   localStorage.setItem(SUPPLIER_CONFIG_KEY, JSON.stringify(configs));
 };
 
-export const addSupplierConfig = (config: SupplierOrderConfig): void => {
-  const configs = getSupplierConfigs();
-  const existingIndex = configs.findIndex(c => 
-    c.cnpj === config.cnpj && c.supplierName === config.supplierName
-  );
-  
-  if (existingIndex >= 0) {
-    configs[existingIndex] = config;
-  } else {
-    configs.push(config);
+export const addSupplierConfig = async (config: SupplierOrderConfig): Promise<void> => {
+  try {
+    await saveSupplierConfigToSupabase(config);
+  } catch (error) {
+    console.error('Error saving to Supabase, falling back to localStorage:', error);
+    
+    // Fallback to localStorage
+    const configs = await getSupplierConfigs();
+    const existingIndex = configs.findIndex(c => 
+      c.cnpj === config.cnpj && c.supplierName === config.supplierName
+    );
+    
+    if (existingIndex >= 0) {
+      configs[existingIndex] = config;
+    } else {
+      configs.push(config);
+    }
+    
+    saveSupplierConfigs(configs);
   }
-  
-  saveSupplierConfigs(configs);
 };
 
-export const removeSupplierConfig = (cnpj: string): void => {
-  const configs = getSupplierConfigs();
-  const filteredConfigs = configs.filter(c => c.cnpj !== cnpj);
-  saveSupplierConfigs(filteredConfigs);
+export const removeSupplierConfig = async (cnpj: string): Promise<void> => {
+  try {
+    await deleteSupplierConfigFromSupabase(cnpj);
+  } catch (error) {
+    console.error('Error deleting from Supabase, falling back to localStorage:', error);
+    
+    // Fallback to localStorage
+    const configs = await getSupplierConfigs();
+    const filteredConfigs = configs.filter(c => c.cnpj !== cnpj);
+    saveSupplierConfigs(filteredConfigs);
+  }
 };
 
-export const extractOrderNumber = (xmlData: any, supplierCnpj: string): string | null => {
-  const configs = getSupplierConfigs();
+export const extractOrderNumber = async (xmlData: any, supplierCnpj: string): Promise<string | null> => {
+  const configs = await getSupplierConfigs();
   
   // Procura configuração específica para o fornecedor
   let config = configs.find(c => c.cnpj === supplierCnpj);

@@ -207,6 +207,33 @@ export type Database = {
         }
         Relationships: []
       }
+      product_unit_configs: {
+        Row: {
+          conversions: Json
+          created_at: string
+          id: string
+          product_code: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversions: Json
+          created_at?: string
+          id?: string
+          product_code: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversions?: Json
+          created_at?: string
+          id?: string
+          product_code?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           base_unit: string
@@ -279,6 +306,117 @@ export type Database = {
           id?: string
           role?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      supplier_configs: {
+        Row: {
+          cnpj: string
+          created_at: string
+          description: string | null
+          extraction_pattern: string
+          id: string
+          source_tag: string
+          supplier_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cnpj: string
+          created_at?: string
+          description?: string | null
+          extraction_pattern: string
+          id?: string
+          source_tag: string
+          supplier_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cnpj?: string
+          created_at?: string
+          description?: string | null
+          extraction_pattern?: string
+          id?: string
+          source_tag?: string
+          supplier_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tag_equivalences: {
+        Row: {
+          equivalent_tags: string[]
+          id: string
+          tag_name: string
+          user_id: string
+        }
+        Insert: {
+          equivalent_tags: string[]
+          id?: string
+          tag_name: string
+          user_id: string
+        }
+        Update: {
+          equivalent_tags?: string[]
+          id?: string
+          tag_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tag_mappings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          source_tag: string
+          target_tag: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          source_tag: string
+          target_tag: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          source_tag?: string
+          target_tag?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      text_file_mappings: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_pattern: string
+          id: string
+          tag_mappings: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_pattern: string
+          id?: string
+          tag_mappings: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_pattern?: string
+          id?: string
+          tag_mappings?: Json
+          user_id?: string
         }
         Relationships: []
       }

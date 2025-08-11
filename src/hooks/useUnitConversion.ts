@@ -8,30 +8,115 @@ export const useUnitConversion = () => {
   const [units, setUnits] = useState<UnitType[]>(DEFAULT_UNITS);
   const [productConfigs, setProductConfigs] = useState<ProductUnitConfig[]>([]);
 
-  // Carregar do localStorage
+  // Load data on mount - prioritize Supabase if user is logged in
   useEffect(() => {
+    const loadData = async () => {
+      if (user) {
+        try {
+          // Load custom units from Supabase
+          const { data: customUnitsData } = await supabase
+            .from('custom_units')
+            .select('*')
+            .eq('user_id', user.id);
+
+          if (customUnitsData) {
+            const customUnits = customUnitsData.map(unit => ({
+              id: unit.id,
+              code: unit.code,
+              name: unit.name,
+              category: unit.category as 'primary' | 'secondary' | 'pallet'
+            }));
+            setUnits([...DEFAULT_UNITS, ...customUnits]);
+          }
+
+          // Load product configs from Supabase
+          const { data: productConfigsData } = await supabase
+            .from('product_unit_configs')
+            .select('*')
+            .eq('user_id', user.id);
+
+          if (productConfigsData) {
+            const configs = productConfigsData.map(config => ({
+              product_code: config.product_code,
+              base_unit: 'UN',
+              conversions: config.conversions as any
+            }));
+            setProductConfigs(configs);
+          }
+
+          // Migrate localStorage data
+          await migrateLocalStorageData();
+        } catch (error) {
+          console.error('Error loading data from Supabase:', error);
+          loadFromLocalStorage();
+        }
+      } else {
+        loadFromLocalStorage();
+      }
+    };
+
+    loadData();
+  }, [user]);
+
+  const loadFromLocalStorage = () => {
+    // Load custom units from localStorage
     const savedUnits = localStorage.getItem('customUnits');
-    const savedConfigs = localStorage.getItem('productUnitConfigs');
-
     if (savedUnits) {
-      const customUnits = JSON.parse(savedUnits);
-      setUnits([...DEFAULT_UNITS, ...customUnits]);
+      try {
+        const customUnits = JSON.parse(savedUnits);
+        setUnits(prev => [...DEFAULT_UNITS, ...customUnits]);
+      } catch (error) {
+        console.error('Error loading custom units from localStorage:', error);
+      }
     }
 
+    // Load product configs from localStorage
+    const savedConfigs = localStorage.getItem('productUnitConfigs');
     if (savedConfigs) {
-      setProductConfigs(JSON.parse(savedConfigs));
+      try {
+        setProductConfigs(JSON.parse(savedConfigs));
+      } catch (error) {
+        console.error('Error loading product configs from localStorage:', error);
+      }
     }
-  }, []);
+  };
 
-  // Salvar no localStorage
-  useEffect(() => {
-    const customUnits = units.filter(unit => !DEFAULT_UNITS.find(def => def.id === unit.id));
-    localStorage.setItem('customUnits', JSON.stringify(customUnits));
-  }, [units]);
+  const migrateLocalStorageData = async () => {
+    if (!user) return;
 
-  useEffect(() => {
-    localStorage.setItem('productUnitConfigs', JSON.stringify(productConfigs));
-  }, [productConfigs]);
+    try {
+      // Migrate custom units
+      const savedUnits = localStorage.getItem('customUnits');
+      if (savedUnits) {
+        const customUnits = JSON.parse(savedUnits);
+        for (const unit of customUnits) {
+          await supabase.from('custom_units').upsert({
+            user_id: user.id,
+            code: unit.code,
+            name: unit.name,
+            category: unit.category
+          });
+        }
+        localStorage.removeItem('customUnits');
+      }
+
+      // Migrate product configs
+      const savedConfigs = localStorage.getItem('productUnitConfigs');
+      if (savedConfigs) {
+        const configs = JSON.parse(savedConfigs);
+        for (const config of configs) {
+          await supabase.from('product_unit_configs').upsert({
+            user_id: user.id,
+            product_code: config.productCode,
+            conversions: config.conversions
+          });
+        }
+        localStorage.removeItem('productUnitConfigs');
+      }
+    } catch (error) {
+      console.error('Error migrating localStorage data:', error);
+    }
+  };
 
   const addCustomUnit = async (unit: Omit<UnitType, 'id'>) => {
     const newUnit: UnitType = {
@@ -62,15 +147,28 @@ export const useUnitConversion = () => {
     return productConfigs.find(config => config.product_code === productCode);
   };
 
-  const updateProductConfig = (config: ProductUnitConfig) => {
+  const updateProductConfig = async (config: ProductUnitConfig) => {
+    if (user) {
+      try {
+        await supabase.from('product_unit_configs').upsert({
+          user_id: user.id,
+          product_code: config.product_code,
+          conversions: config.conversions as any
+        });
+      } catch (error) {
+        console.error('Error saving product config:', error);
+      }
+    }
+
     setProductConfigs(prev => {
       const existingIndex = prev.findIndex(c => c.product_code === config.product_code);
       if (existingIndex >= 0) {
         const updated = [...prev];
         updated[existingIndex] = config;
         return updated;
+      } else {
+        return [...prev, config];
       }
-      return [...prev, config];
     });
   };
 

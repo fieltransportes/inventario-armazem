@@ -30,12 +30,12 @@ const SupplierConfig: React.FC = () => {
     loadConfigs();
   }, []);
 
-  const loadConfigs = () => {
-    const loadedConfigs = getSupplierConfigs();
+  const loadConfigs = async () => {
+    const loadedConfigs = await getSupplierConfigs();
     setConfigs(loadedConfigs);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.supplierName || !formData.extractionPattern || !formData.sourceTag) {
       toast({
         title: "Campos obrigatórios",
@@ -57,8 +57,8 @@ const SupplierConfig: React.FC = () => {
         description: formData.description.trim()
       };
 
-      addSupplierConfig(config);
-      loadConfigs();
+      await addSupplierConfig(config);
+      await loadConfigs();
       setIsDialogOpen(false);
       resetForm();
 
@@ -87,10 +87,10 @@ const SupplierConfig: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (cnpj: string) => {
+  const handleDelete = async (cnpj: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta configuração?')) {
-      removeSupplierConfig(cnpj);
-      loadConfigs();
+      await removeSupplierConfig(cnpj);
+      await loadConfigs();
       toast({
         title: "Configuração removida",
         description: "A configuração foi removida com sucesso.",

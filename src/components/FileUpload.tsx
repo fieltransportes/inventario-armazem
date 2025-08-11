@@ -27,7 +27,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
       const content = await fileStatus.file.text();
       console.log('Processing file:', fileStatus.file.name);
       
-      const nfeData = parseNFEXML(content, fileStatus.file.name);
+      const nfeData = await parseNFEXML(content, fileStatus.file.name);
       console.log('Parsed NFE data, chNFe:', nfeData.chNFe);
       
       // Check if NFE already exists in Supabase

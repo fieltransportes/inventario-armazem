@@ -70,14 +70,17 @@ export const deleteNFEData = async (chNFe: string): Promise<void> => {
   }
 };
 
-// Manter funções de inventário no localStorage por enquanto
+// Deprecated: Inventory data should now use Supabase tables
+// These functions are kept for backward compatibility only
 export const saveInventory = (inventoryData: any): void => {
+  console.warn('saveInventory is deprecated - use Supabase inventories table instead');
   const inventories = getInventories();
   inventories.push(inventoryData);
   localStorage.setItem('inventories', JSON.stringify(inventories));
 };
 
 export const getInventories = (): any[] => {
+  console.warn('getInventories is deprecated - use Supabase inventories table instead');
   const data = localStorage.getItem('inventories');
   return data ? JSON.parse(data) : [];
 };

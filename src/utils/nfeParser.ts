@@ -1,7 +1,7 @@
 import { NFEData, NFEProduct, NFESeller, NFEBuyer } from '../types/nfe';
 import { extractOrderNumber } from './supplierConfig';
 
-export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
+export const parseNFEXML = async (xmlContent: string, fileName: string): Promise<NFEData> => {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
   
@@ -127,7 +127,7 @@ export const parseNFEXML = (xmlContent: string, fileName: string): NFEData => {
       obs: getTextContent('obs')
     };
     
-    const pedidoDT = extractOrderNumber(xmlData, seller.cnpj);
+    const pedidoDT = await extractOrderNumber(xmlData, seller.cnpj);
     
     console.log('Extracted xmlData:', xmlData);
     console.log('Extracted pedidoDT:', pedidoDT);
