@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ProductFormData } from '@/types/product';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus } from 'lucide-react';
+import { useUnitConversion } from '@/hooks/useUnitConversion';
 import UnitConversionManager from '@/components/unitConversion/UnitConversionManager';
 
 interface ProductFormProps {
@@ -23,6 +26,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
   onCancel,
   isLoading = false,
 }) => {
+  const [showNewUnitDialog, setShowNewUnitDialog] = useState(false);
+  const [newUnit, setNewUnit] = useState({ code: '', name: '', category: 'primary' as 'primary' | 'secondary' | 'pallet' });
+  
+  const { units, addCustomUnit } = useUnitConversion();
+  
   const {
     register,
     handleSubmit,
@@ -37,6 +45,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
   });
 
   const baseUnit = watch('base_unit');
+
+  const handleAddNewUnit = async () => {
+    if (!newUnit.code || !newUnit.name) return;
+    
+    await addCustomUnit({
+      code: newUnit.code,
+      name: newUnit.name,
+      category: newUnit.category
+    });
+    
+    setNewUnit({ code: '', name: '', category: 'primary' });
+    setShowNewUnitDialog(false);
+  };
 
   return (
     <Card>
@@ -90,21 +111,89 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
             <div>
               <Label htmlFor="base_unit">Unidade Base *</Label>
-              <Select
-                value={baseUnit}
-                onValueChange={(value) => setValue('base_unit', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a unidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="UN">Unidade (UN)</SelectItem>
-                  <SelectItem value="CX">Caixa (CX)</SelectItem>
-                  <SelectItem value="PAL">Palete (PAL)</SelectItem>
-                  <SelectItem value="KG">Quilograma (KG)</SelectItem>
-                  <SelectItem value="PC">Peça (PC)</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select
+                  value={baseUnit}
+                  onValueChange={(value) => setValue('base_unit', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {units.map(unit => (
+                      <SelectItem key={unit.id} value={unit.code}>
+                        {unit.name} ({unit.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Dialog open={showNewUnitDialog} onOpenChange={setShowNewUnitDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" type="button">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Adicionar Nova Unidade</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="new-unit-code">Código da Unidade</Label>
+                        <Input
+                          id="new-unit-code"
+                          value={newUnit.code}
+                          onChange={(e) => setNewUnit(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                          placeholder="Ex: L, KG, PCT"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="new-unit-name">Nome da Unidade</Label>
+                        <Input
+                          id="new-unit-name"
+                          value={newUnit.name}
+                          onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Ex: Litro, Quilograma, Pacote"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="new-unit-category">Categoria</Label>
+                        <Select 
+                          value={newUnit.category} 
+                          onValueChange={(value: 'primary' | 'secondary' | 'pallet') => 
+                            setNewUnit(prev => ({ ...prev, category: value }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="primary">Primária</SelectItem>
+                            <SelectItem value="secondary">Secundária</SelectItem>
+                            <SelectItem value="pallet">Paletização</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowNewUnitDialog(false)}
+                          type="button"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          onClick={handleAddNewUnit}
+                          disabled={!newUnit.code || !newUnit.name}
+                          type="button"
+                        >
+                          Adicionar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
 
