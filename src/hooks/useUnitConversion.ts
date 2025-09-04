@@ -231,8 +231,12 @@ export const useUnitConversion = () => {
 
   // Função para converter quantidades
   const convertQuantity = (quantity: number, fromUnit: string, productCode: string): string => {
+    console.log('convertQuantity called with:', { quantity, fromUnit, productCode });
     const config = getProductConfig(productCode);
+    console.log('Product config found:', config);
+    
     if (!config) {
+      console.log('No configuration found for product:', productCode);
       return `${quantity.toLocaleString('pt-BR')} ${fromUnit}`;
     }
 
