@@ -177,16 +177,22 @@ export const useUnitConversion = () => {
   };
 
   const addConversionToProduct = async (productCode: string, conversion: Omit<UnitConversion, 'id' | 'product_code'>) => {
+    console.log('addConversionToProduct called with:', { productCode, conversion });
+    
     const newConversion: UnitConversion = {
       ...conversion,
       id: Date.now().toString(),
       product_code: productCode
     };
 
+    console.log('New conversion object:', newConversion);
+
     let updatedConfig: ProductUnitConfig;
 
     setProductConfigs(prev => {
       const existingConfig = prev.find(c => c.product_code === productCode);
+      console.log('Existing config:', existingConfig);
+      
       if (existingConfig) {
         const updated = [...prev];
         const index = updated.findIndex(c => c.product_code === productCode);
@@ -195,6 +201,7 @@ export const useUnitConversion = () => {
           conversions: [...existingConfig.conversions, newConversion]
         };
         updated[index] = updatedConfig;
+        console.log('Updated config:', updatedConfig);
         return updated;
       } else {
         // Criar nova configuração para o produto
@@ -203,11 +210,13 @@ export const useUnitConversion = () => {
           base_unit: conversion.from_unit,
           conversions: [newConversion]
         };
+        console.log('New config created:', updatedConfig);
         return [...prev, updatedConfig];
       }
     });
 
     // Salvar no Supabase
+    console.log('Saving to Supabase:', updatedConfig!);
     await updateProductConfig(updatedConfig!);
   };
 
