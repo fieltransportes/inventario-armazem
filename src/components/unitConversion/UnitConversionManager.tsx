@@ -40,9 +40,9 @@ const UnitConversionManager: React.FC<UnitConversionManagerProps> = ({ productCo
     category: 'primary' as 'primary' | 'secondary' | 'pallet'
   });
 
-  const handleAddConversion = () => {
+  const handleAddConversion = async () => {
     if (newConversion.from_unit && newConversion.to_unit && newConversion.conversion_factor > 0) {
-      addConversionToProduct(productCode, newConversion);
+      await addConversionToProduct(productCode, newConversion);
       setNewConversion({
         from_unit: '',
         to_unit: '',
@@ -83,28 +83,28 @@ const UnitConversionManager: React.FC<UnitConversionManagerProps> = ({ productCo
             <div>
               <h4 className="font-medium mb-2">Conversões Configuradas:</h4>
               <div className="space-y-2">
-                {config.conversions.map((conversion) => (
-                  <div key={conversion.id} className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{conversion.from_unit}</Badge>
-                      <span>→</span>
-                      <Badge variant="outline">{conversion.to_unit}</Badge>
-                      <span className="text-sm text-muted-foreground">
-                        ({conversion.conversion_factor} {conversion.from_unit} = 1 {conversion.to_unit})
-                      </span>
-                      <Badge variant={conversion.category === 'secondary' ? 'default' : 'secondary'}>
-                        {conversion.category === 'secondary' ? 'Embalagem Secundária' : 'Paletização'}
-                      </Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeConversion(productCode, conversion.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+                 {config.conversions.map((conversion) => (
+                   <div key={conversion.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 border rounded gap-2">
+                     <div className="flex flex-wrap items-center gap-2">
+                       <Badge variant="outline">{conversion.from_unit}</Badge>
+                       <span>→</span>
+                       <Badge variant="outline">{conversion.to_unit}</Badge>
+                       <span className="text-sm text-muted-foreground">
+                         ({conversion.conversion_factor} {conversion.from_unit} = 1 {conversion.to_unit})
+                       </span>
+                       <Badge variant={conversion.category === 'secondary' ? 'default' : 'secondary'}>
+                         {conversion.category === 'secondary' ? 'Embalagem Secundária' : 'Paletização'}
+                       </Badge>
+                     </div>
+                     <Button
+                       variant="ghost"
+                       size="sm"
+                       onClick={() => removeConversion(productCode, conversion.id)}
+                     >
+                       <Trash2 className="h-4 w-4" />
+                     </Button>
+                   </div>
+                 ))}
               </div>
             </div>
           )}
@@ -112,7 +112,7 @@ const UnitConversionManager: React.FC<UnitConversionManagerProps> = ({ productCo
           {/* Adicionar nova conversão */}
           <div className="border-t pt-4">
             <h4 className="font-medium mb-4">Adicionar Nova Conversão:</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="flex gap-2">
                 <div className="flex-1">
                   <Label htmlFor="from-unit">Unidade Origem</Label>
@@ -138,7 +138,7 @@ const UnitConversionManager: React.FC<UnitConversionManagerProps> = ({ productCo
                         <Plus className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Adicionar Nova Unidade</DialogTitle>
                       </DialogHeader>

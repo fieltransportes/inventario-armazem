@@ -172,46 +172,61 @@ export const useUnitConversion = () => {
     });
   };
 
-  const addConversionToProduct = (productCode: string, conversion: Omit<UnitConversion, 'id' | 'product_code'>) => {
+  const addConversionToProduct = async (productCode: string, conversion: Omit<UnitConversion, 'id' | 'product_code'>) => {
     const newConversion: UnitConversion = {
       ...conversion,
       id: Date.now().toString(),
       product_code: productCode
     };
 
+    let updatedConfig: ProductUnitConfig;
+
     setProductConfigs(prev => {
       const existingConfig = prev.find(c => c.product_code === productCode);
       if (existingConfig) {
         const updated = [...prev];
         const index = updated.findIndex(c => c.product_code === productCode);
-        updated[index] = {
+        updatedConfig = {
           ...existingConfig,
           conversions: [...existingConfig.conversions, newConversion]
         };
+        updated[index] = updatedConfig;
         return updated;
       } else {
         // Criar nova configuração para o produto
-        return [...prev, {
+        updatedConfig = {
           product_code: productCode,
           base_unit: conversion.from_unit,
           conversions: [newConversion]
-        }];
+        };
+        return [...prev, updatedConfig];
       }
     });
+
+    // Salvar no Supabase
+    await updateProductConfig(updatedConfig!);
   };
 
-  const removeConversion = (productCode: string, conversionId: string) => {
+  const removeConversion = async (productCode: string, conversionId: string) => {
+    let updatedConfig: ProductUnitConfig | undefined;
+
     setProductConfigs(prev => {
       return prev.map(config => {
         if (config.product_code === productCode) {
-          return {
+          updatedConfig = {
             ...config,
             conversions: config.conversions.filter(c => c.id !== conversionId)
           };
+          return updatedConfig;
         }
         return config;
       });
     });
+
+    // Salvar no Supabase se existe configuração
+    if (updatedConfig) {
+      await updateProductConfig(updatedConfig);
+    }
   };
 
   // Função para converter quantidades
