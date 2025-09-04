@@ -144,7 +144,11 @@ export const useUnitConversion = () => {
   };
 
   const getProductConfig = (productCode: string): ProductUnitConfig | undefined => {
-    return productConfigs.find(config => config.product_code === productCode);
+    console.log('getProductConfig called for:', productCode);
+    console.log('Available configs:', productConfigs);
+    const config = productConfigs.find(config => config.product_code === productCode);
+    console.log('Config found:', config);
+    return config;
   };
 
   const updateProductConfig = async (config: ProductUnitConfig) => {
