@@ -299,6 +299,36 @@ export const useUnitConversion = () => {
     return result;
   };
 
+  const removeProductConfigurations = (productCode: string) => {
+    console.log('🔧 Removing all configurations for product:', productCode);
+    setProductConfigs(prev => prev.filter(config => config.product_code !== productCode));
+  };
+
+  const reloadConfigurations = async () => {
+    console.log('🔧 Reloading all configurations from Supabase');
+    if (user) {
+      try {
+        const { data: supabaseConfigs } = await supabase
+          .from('product_unit_configs')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (supabaseConfigs) {
+          const configs: ProductUnitConfig[] = supabaseConfigs.map(config => ({
+            product_code: config.product_code,
+            base_unit: 'UN',
+            conversions: (config.conversions || []) as any as UnitConversion[]
+          }));
+          
+          console.log('🔧 Reloaded configurations:', configs);
+          setProductConfigs(configs);
+        }
+      } catch (error) {
+        console.error('Error reloading configurations:', error);
+      }
+    }
+  };
+
   return {
     units,
     productConfigs,
@@ -307,6 +337,8 @@ export const useUnitConversion = () => {
     updateProductConfig,
     addConversionToProduct,
     removeConversion,
-    convertQuantity
+    convertQuantity,
+    removeProductConfigurations,
+    reloadConfigurations
   };
 };

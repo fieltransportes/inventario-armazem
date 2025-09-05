@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductData, ProductFormData } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from './useAuth';
 
 export const useProducts = () => {
+  const { user } = useAuth();
   const [products, setProducts] = useState<ProductData[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -90,6 +92,13 @@ export const useProducts = () => {
 
   const deleteProduct = async (id: string) => {
     try {
+      // Primeiro, obter o código do produto para limpar suas configurações de unidade
+      const { data: product } = await supabase
+        .from('products')
+        .select('code')
+        .eq('id', id)
+        .single();
+
       const { error } = await supabase
         .from('products')
         .delete()
@@ -97,7 +106,16 @@ export const useProducts = () => {
 
       if (error) throw error;
 
+      // Limpar configurações de unidade do produto
+      if (product?.code) {
+        await supabase
+          .from('product_unit_configs')
+          .delete()
+          .eq('product_code', product.code);
+      }
+
       setProducts(prev => prev.filter(p => p.id !== id));
+      
       toast({
         title: "Sucesso",
         description: "Produto excluído com sucesso",
