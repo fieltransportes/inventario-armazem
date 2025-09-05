@@ -177,7 +177,7 @@ export const useUnitConversion = () => {
   };
 
   const addConversionToProduct = async (productCode: string, conversion: Omit<UnitConversion, 'id' | 'product_code'>) => {
-    console.log('addConversionToProduct called with:', { productCode, conversion });
+    console.log('🔧 addConversionToProduct called with:', { productCode, conversion });
     
     const newConversion: UnitConversion = {
       ...conversion,
@@ -185,13 +185,13 @@ export const useUnitConversion = () => {
       product_code: productCode
     };
 
-    console.log('New conversion object:', newConversion);
+    console.log('🔧 New conversion object:', newConversion);
 
     let updatedConfig: ProductUnitConfig;
 
     setProductConfigs(prev => {
       const existingConfig = prev.find(c => c.product_code === productCode);
-      console.log('Existing config:', existingConfig);
+      console.log('🔧 Existing config for product', productCode, ':', existingConfig);
       
       if (existingConfig) {
         const updated = [...prev];
@@ -201,7 +201,7 @@ export const useUnitConversion = () => {
           conversions: [...existingConfig.conversions, newConversion]
         };
         updated[index] = updatedConfig;
-        console.log('Updated config:', updatedConfig);
+        console.log('🔧 Updated existing config:', updatedConfig);
         return updated;
       } else {
         // Criar nova configuração para o produto
@@ -210,13 +210,13 @@ export const useUnitConversion = () => {
           base_unit: conversion.from_unit,
           conversions: [newConversion]
         };
-        console.log('New config created:', updatedConfig);
+        console.log('🔧 New config created for product', productCode, ':', updatedConfig);
         return [...prev, updatedConfig];
       }
     });
 
     // Salvar no Supabase
-    console.log('Saving to Supabase:', updatedConfig!);
+    console.log('🔧 Saving to Supabase for product', productCode, ':', updatedConfig!);
     await updateProductConfig(updatedConfig!);
   };
 

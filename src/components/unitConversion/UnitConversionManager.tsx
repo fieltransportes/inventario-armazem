@@ -42,6 +42,11 @@ const UnitConversionManager: React.FC<UnitConversionManagerProps> = ({ productCo
 
   const handleAddConversion = async () => {
     if (newConversion.from_unit && newConversion.to_unit && newConversion.conversion_factor > 0) {
+      console.log('🔧 UnitConversionManager - Adding conversion:', {
+        productCode,
+        productName,
+        conversion: newConversion
+      });
       await addConversionToProduct(productCode, newConversion);
       setNewConversion({
         from_unit: '',
