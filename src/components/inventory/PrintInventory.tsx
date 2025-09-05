@@ -3,9 +3,11 @@ import React from 'react';
 import { Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useUnitConversion } from '@/hooks/useUnitConversion';
 
 interface InventoryItem {
   name: string;
+  code?: string;
   totalQuantity: number;
   totalValue: number;
   unit: string;
@@ -15,14 +17,26 @@ interface InventoryItem {
 interface PrintInventoryProps {
   inventorySummary: InventoryItem[];
   searchFilters: Array<{ id: string; type: 'number' | 'chave'; value: string }>;
+  showUnitized?: boolean;
 }
 
-const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searchFilters }) => {
-  const formatQuantity = (quantity: number, unit: string) => {
+const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searchFilters, showUnitized = false }) => {
+  const { convertQuantity } = useUnitConversion();
+
+  const formatQuantity = (quantity: number, unit: string, productCode?: string) => {
+    if (showUnitized && productCode) {
+      return convertQuantity(quantity, unit, productCode);
+    }
     return `${quantity.toLocaleString('pt-BR')} ${unit}`;
   };
 
   const handlePrint = () => {
+    // Processar os dados antes de gerar o HTML
+    const processedItems = inventorySummary.map(item => ({
+      ...item,
+      displayQuantity: formatQuantity(item.totalQuantity, item.unit, item.code)
+    }));
+
     const printContent = `
       <!DOCTYPE html>
       <html>
@@ -48,11 +62,12 @@ const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searc
           <div class="date">Data: ${new Date().toLocaleDateString('pt-BR')}</div>
           <h1>Relatório de Inventário</h1>
           
-          <div class="filters">
+           <div class="filters">
             <h2>Filtros Aplicados:</h2>
             ${searchFilters.map(filter => 
               `<p>• ${filter.type === 'number' ? 'NFE' : 'Chave de Acesso'}: ${filter.value}</p>`
             ).join('')}
+            ${showUnitized ? '<p>• <strong>Relatório Unitizado</strong> - Quantidades convertidas para embalagens</p>' : ''}
           </div>
 
           <h2>Resumo do Inventário por Produto</h2>
@@ -65,10 +80,10 @@ const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searc
               </tr>
             </thead>
             <tbody>
-              ${inventorySummary.map(item => `
+              ${processedItems.map(item => `
                 <tr>
                   <td>${item.name}</td>
-                  <td class="text-right">${formatQuantity(item.totalQuantity, item.unit)}</td>
+                  <td class="text-right">${item.displayQuantity}</td>
                   <td class="text-center">${item.occurrences} NFE${item.occurrences > 1 ? 's' : ''}</td>
                 </tr>
               `).join('')}
@@ -105,14 +120,15 @@ const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searc
         <DialogHeader>
           <DialogTitle>Imprimir Relatório de Inventário</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+         <div className="space-y-4">
           <p>Este relatório incluirá:</p>
           <ul className="list-disc list-inside space-y-2 text-sm">
             <li>Filtros aplicados na busca</li>
             <li>Resumo de todos os produtos encontrados</li>
-            <li>Quantidades totais por produto</li>
+            <li>Quantidades totais por produto{showUnitized ? ' (convertidas para embalagens)' : ''}</li>
             <li>Número de ocorrências por produto</li>
             <li>Data e hora de geração do relatório</li>
+            {showUnitized && <li className="font-medium text-blue-600">Modo unitizado ativo - quantidades serão convertidas conforme configuração de embalagens</li>}
           </ul>
           <div className="flex justify-end space-x-2 pt-4">
             <Button onClick={handlePrint} className="flex items-center space-x-2">

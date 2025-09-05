@@ -36,6 +36,7 @@ const InventoryResults: React.FC<InventoryResultsProps> = ({
           <PrintInventory 
             inventorySummary={inventorySummary} 
             searchFilters={searchFilters}
+            showUnitized={showUnitized}
           />
           <Button 
             onClick={() => setSaveDialogOpen(true)}
