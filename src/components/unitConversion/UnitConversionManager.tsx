@@ -227,13 +227,14 @@ const UnitConversionManager: React.FC<UnitConversionManagerProps> = ({ productCo
                 <Input
                   id="factor"
                   type="number"
-                  min="1"
+                  min="0.01"
+                  step="0.01"
                   value={newConversion.conversion_factor}
                   onChange={(e) => setNewConversion(prev => ({ 
                     ...prev, 
-                    conversion_factor: parseInt(e.target.value) || 1 
+                    conversion_factor: parseFloat(e.target.value) || 1 
                   }))}
-                  placeholder="Ex: 12"
+                  placeholder="Ex: 4.8"
                 />
               </div>
 
