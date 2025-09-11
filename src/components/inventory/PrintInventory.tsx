@@ -18,9 +18,10 @@ interface PrintInventoryProps {
   inventorySummary: InventoryItem[];
   searchFilters: Array<{ id: string; type: 'number' | 'chave'; value: string }>;
   showUnitized?: boolean;
+  showQuantities?: boolean;
 }
 
-const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searchFilters, showUnitized = false }) => {
+const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searchFilters, showUnitized = false, showQuantities = true }) => {
   const { convertQuantity } = useUnitConversion();
 
   const formatQuantity = (quantity: number, unit: string, productCode?: string) => {
@@ -75,7 +76,7 @@ const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searc
             <thead>
               <tr>
                 <th>Produto</th>
-                <th class="text-right">Quantidade Total</th>
+                ${showQuantities ? '<th class="text-right">Quantidade Total</th>' : ''}
                 <th class="text-center">Ocorrências</th>
               </tr>
             </thead>
@@ -83,7 +84,7 @@ const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searc
               ${processedItems.map(item => `
                 <tr>
                   <td>${item.name}</td>
-                  <td class="text-right">${item.displayQuantity}</td>
+                  ${showQuantities ? `<td class="text-right">${item.displayQuantity}</td>` : ''}
                   <td class="text-center">${item.occurrences} NFE${item.occurrences > 1 ? 's' : ''}</td>
                 </tr>
               `).join('')}

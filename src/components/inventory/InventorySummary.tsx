@@ -19,11 +19,16 @@ interface InventoryItem {
 interface InventorySummaryProps {
   inventorySummary: InventoryItem[];
   showUnitized?: boolean;
+  onShowQuantitiesChange?: (show: boolean) => void;
 }
 
-const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, showUnitized = false }) => {
+const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, showUnitized = false, onShowQuantitiesChange }) => {
   const [showQuantities, setShowQuantities] = useState(true);
   const { convertQuantity } = useUnitConversion();
+
+  useEffect(() => {
+    onShowQuantitiesChange?.(showQuantities);
+  }, [showQuantities, onShowQuantitiesChange]);
 
   const formatQuantity = (quantity: number, unit: string, item: InventoryItem, showUnitized: boolean = false) => {
     console.log('InventorySummary formatQuantity:', { quantity, unit, showUnitized, productCode: item.code });

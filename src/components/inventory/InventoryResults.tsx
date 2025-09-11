@@ -27,6 +27,7 @@ const InventoryResults: React.FC<InventoryResultsProps> = ({
 }) => {
   console.log('InventoryResults received showUnitized:', showUnitized);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [showQuantities, setShowQuantities] = useState(true);
 
   return (
     <>
@@ -37,6 +38,7 @@ const InventoryResults: React.FC<InventoryResultsProps> = ({
             inventorySummary={inventorySummary} 
             searchFilters={searchFilters}
             showUnitized={showUnitized}
+            showQuantities={showQuantities}
           />
           <Button 
             onClick={() => setSaveDialogOpen(true)}
@@ -57,7 +59,11 @@ const InventoryResults: React.FC<InventoryResultsProps> = ({
         </TabsList>
 
         <TabsContent value="summary">
-          <InventorySummary inventorySummary={inventorySummary} showUnitized={showUnitized} />
+          <InventorySummary 
+            inventorySummary={inventorySummary} 
+            showUnitized={showUnitized}
+            onShowQuantitiesChange={setShowQuantities}
+          />
         </TabsContent>
 
         <TabsContent value="detailed">
