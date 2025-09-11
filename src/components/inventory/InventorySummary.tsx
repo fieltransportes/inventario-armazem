@@ -22,7 +22,7 @@ interface InventorySummaryProps {
 }
 
 const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, showUnitized = false }) => {
-  const [showUnitizedLocal, setShowUnitizedLocal] = useState(false);
+  const [showQuantities, setShowQuantities] = useState(true);
   const { convertQuantity } = useUnitConversion();
 
   const formatQuantity = (quantity: number, unit: string, item: InventoryItem, showUnitized: boolean = false) => {
@@ -41,11 +41,11 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, s
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowUnitizedLocal(!showUnitizedLocal)}
+            onClick={() => setShowQuantities(!showQuantities)}
             className="flex items-center space-x-2"
           >
-            {showUnitizedLocal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            <span>{showUnitizedLocal ? 'Qtd. Original' : 'Qtd. Unitizada'}</span>
+            {showQuantities ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            <span>{showQuantities ? 'Ocultar Qtd.' : 'Mostrar Qtd.'}</span>
           </Button>
         </div>
       </CardHeader>
@@ -54,7 +54,7 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, s
           <TableHeader>
             <TableRow>
               <TableHead>Produto</TableHead>
-              <TableHead className="text-right">Quantidade Total</TableHead>
+              {showQuantities && <TableHead className="text-right">Quantidade Total</TableHead>}
               <TableHead className="text-center">Ocorrências</TableHead>
             </TableRow>
           </TableHeader>
@@ -62,9 +62,11 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, s
             {inventorySummary.map((item, index) => (
               <TableRow key={index}>
                 <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell className="text-right">
-                  {formatQuantity(item.totalQuantity, item.unit, item, showUnitizedLocal)}
-                </TableCell>
+                {showQuantities && (
+                  <TableCell className="text-right">
+                    {formatQuantity(item.totalQuantity, item.unit, item, showUnitized)}
+                  </TableCell>
+                )}
                 <TableCell className="text-center">
                   <Badge variant="secondary">
                     {item.occurrences} NFE{item.occurrences > 1 ? 's' : ''}
