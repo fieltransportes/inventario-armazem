@@ -76,7 +76,7 @@ const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searc
             <thead>
               <tr>
                 <th>Produto</th>
-                ${showQuantities ? '<th class="text-right">Quantidade Total</th>' : ''}
+                <th class="text-right">Quantidade Total</th>
                 <th class="text-center">Ocorrências</th>
               </tr>
             </thead>
@@ -84,7 +84,7 @@ const PrintInventory: React.FC<PrintInventoryProps> = ({ inventorySummary, searc
               ${processedItems.map(item => `
                 <tr>
                   <td>${item.name}</td>
-                  ${showQuantities ? `<td class="text-right">${item.displayQuantity}</td>` : ''}
+                  <td class="text-right">${showQuantities ? item.displayQuantity : ''}</td>
                   <td class="text-center">${item.occurrences} NFE${item.occurrences > 1 ? 's' : ''}</td>
                 </tr>
               `).join('')}

@@ -59,7 +59,7 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, s
           <TableHeader>
             <TableRow>
               <TableHead>Produto</TableHead>
-              {showQuantities && <TableHead className="text-right">Quantidade Total</TableHead>}
+              <TableHead className="text-right">Quantidade Total</TableHead>
               <TableHead className="text-center">Ocorrências</TableHead>
             </TableRow>
           </TableHeader>
@@ -67,11 +67,9 @@ const InventorySummary: React.FC<InventorySummaryProps> = ({ inventorySummary, s
             {inventorySummary.map((item, index) => (
               <TableRow key={index}>
                 <TableCell className="font-medium">{item.name}</TableCell>
-                {showQuantities && (
-                  <TableCell className="text-right">
-                    {formatQuantity(item.totalQuantity, item.unit, item, showUnitized)}
-                  </TableCell>
-                )}
+                <TableCell className="text-right">
+                  {showQuantities ? formatQuantity(item.totalQuantity, item.unit, item, showUnitized) : ''}
+                </TableCell>
                 <TableCell className="text-center">
                   <Badge variant="secondary">
                     {item.occurrences} NFE{item.occurrences > 1 ? 's' : ''}
